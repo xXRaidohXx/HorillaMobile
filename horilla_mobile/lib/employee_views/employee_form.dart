@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:horilla_mobile/employee_views/rotating_shift.dart';
-import 'package:horilla_mobile/employee_views/rotating_work_type.dart';
-import 'package:horilla_mobile/employee_views/shift_request.dart';
-import 'package:horilla_mobile/employee_views/work_type_request.dart';
+import 'package:horilla/employee_views/rotating_shift.dart';
+import 'package:horilla/employee_views/rotating_work_type.dart';
+import 'package:horilla/employee_views/shift_request.dart';
+import 'package:horilla/employee_views/work_type_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
@@ -33,7 +33,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
   TextEditingController descriptionSelect = TextEditingController();
   TextEditingController createRequestedDateController = TextEditingController();
   TextEditingController createRotateStartDateController =
-      TextEditingController();
+  TextEditingController();
   TextEditingController bankNameController = TextEditingController();
   TextEditingController accountNumberController = TextEditingController();
   TextEditingController branchController = TextEditingController();
@@ -156,7 +156,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
   bool isAction = false;
   bool checkFile = false;
   bool isLoadingImage = false;
-  bool userPermissionCheck = false;
   XFile? pickedFile;
 
   @override
@@ -181,25 +180,21 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
       getEmployeeJobDepartment();
       getReportingManager();
       getCompanies();
-      userPermissionChecks();
       getEmployeeType();
       _simulateLoading();
     });
   }
 
-  /// Simulates loading by delaying for 2 seconds and updating the UI state.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 2));
     setState(() {});
   }
 
-  /// Loads employee data from SharedPreferences and sets the employeeId.
   Future<void> _loadEmployeeData() async {
     final prefs = await SharedPreferences.getInstance();
     employeeId = prefs.getInt("employee_id");
   }
 
-  /// Initializes the controller based on employee details and employeeId.
   void initializeController() {
     if (employeeDetails['id'] != null && employeeDetails['id'] == employeeId) {
       setState(() {
@@ -212,7 +207,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Retrieves the base URL from SharedPreferences and sets it to `baseUrl`.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -221,7 +215,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     });
   }
 
-  /// Prefetches employee data by making an API call to retrieve employee details.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -236,35 +229,32 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Retrieves employee details based on `employee_id` passed through the route and updates the UI.
   Future<void> getEmployeeDetails() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     empId = args['employee_id'].toString();
@@ -291,16 +281,12 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Fetches the work type requests for the employee.
   Future<void> getWorkTypeRequest() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     empId = args['employee_id'].toString();
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    List<dynamic> allRequests = [];
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/base/worktype-requests?employee_id=$empId&page=$page');
@@ -308,38 +294,21 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var requests = data['results'];
-        if (requests.isEmpty) {
-          break;
-        }
-        allRequests.addAll(requests);
-
         setState(() {
-          employeeWorkTypeRequest = allRequests;
-          employeeWorkTypeRequestCount = data['count'];
+          employeeWorkTypeRequest = jsonDecode(response.body)['results'];
+          employeeWorkTypeRequestCount = jsonDecode(response.body)['count'];
         });
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        throw Exception('Failed to load work type requests');
       }
     }
   }
 
-  /// Fetches the rotating work type requests for the employee.
   Future<void> getRotatingWorkTypeRequest() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     empId = args['employee_id'].toString();
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    List<dynamic> allRotatingWorkTypeRequests = [];
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/base/rotating-worktype-assigns/?employee_id=$empId&page=$page');
@@ -347,38 +316,23 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var requests = data['results'];
-        if (requests.isEmpty) {
-          break;
-        }
-        allRotatingWorkTypeRequests.addAll(requests);
-
         setState(() {
-          employeeRotatingWorkTypeRequest = allRotatingWorkTypeRequests;
-          employeeRotatingWorkTypeRequestCount = data['count'];
+          employeeRotatingWorkTypeRequest =
+          jsonDecode(response.body)['results'];
+          employeeRotatingWorkTypeRequestCount =
+          jsonDecode(response.body)['count'];
         });
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        throw Exception('Failed to load rotating work type requests');
       }
     }
   }
 
-  /// Fetches the shift requests for the employee.
   Future<void> getShiftRequest() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     empId = args['employee_id'].toString();
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    List<dynamic> allShiftRequests = [];
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/base/shift-requests/?employee_id=$empId&page=$page');
@@ -386,41 +340,21 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var requests = data['results'];
-
-        if (requests.isEmpty) {
-          break;
-        }
-
-        allShiftRequests.addAll(requests);
-
         setState(() {
-          employeeShiftRequest = allShiftRequests;
-          employeeShiftRequestCount = data['count'];
+          employeeShiftRequest = jsonDecode(response.body)['results'];
+          employeeShiftRequestCount = jsonDecode(response.body)['count'];
         });
-
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        throw Exception('Failed to load shift requests');
       }
     }
   }
 
-  /// Fetches the rotating shift requests for the employee.
   Future<void> getRotatingShiftRequest() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     empId = args['employee_id'].toString();
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    List<dynamic> allRotatingShiftRequests = [];
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/base/rotating-shift-assigns/?employee_id=$empId&page=$page');
@@ -428,32 +362,16 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var requests = data['results'];
-
-        if (requests.isEmpty) {
-          break;
-        }
-
-        allRotatingShiftRequests.addAll(requests);
-
         setState(() {
-          employeeRotatingShiftRequest = allRotatingShiftRequests;
-          employeeRotatingShiftRequestCount = data['count'];
+          employeeRotatingShiftRequest = jsonDecode(response.body)['results'];
+          employeeRotatingShiftRequestCount =
+          jsonDecode(response.body)['count'];
         });
-
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        break;
       }
     }
   }
 
-  /// Fetches employee work information based on the `employee_work_info_id` and updates the UI.
   Future<void> getEmployeeWorkInformation() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -473,124 +391,76 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Fetches the job roles list and assigns the correct job role to the employee.
   Future<void> getEmployeeJobRole() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    for (var page = 1; page > 0; page++) {
+    for (var page = 1;; page++) {
       var uri = Uri.parse('$typedServerUrl/api/base/job-roles/?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
         var responseBody = jsonDecode(response.body);
-
+        employeeJobRuleRecord = responseBody;
         if (responseBody != null && responseBody['results'] != null) {
-          var results = responseBody['results'];
-
-          if (results.isEmpty) {
-            break;
-          }
-
-          for (var rule in results) {
+          for (var rule in responseBody['results']) {
             final jobRule = rule['job_role'] ?? '';
             String jobRuleId = "${rule['id']}";
             jobRuleItems.add(jobRule);
             jobRuleIdMap[jobRule] = jobRuleId;
-
             if (rule['id'] == employeeWorkInfoRecord['job_role_id']) {
               jobRuleName = rule['job_role'];
             }
           }
-        } else {
-          break;
         }
-      } else {
-        break;
       }
     }
   }
 
-  /// Fetches the job positions list and updates the `employeeJobPositionRecord`.
   Future<void> getEmployeeJobPosition() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    for (var page = 1; page > 0; page++) {
+    for (var page = 1;; page++) {
       var uri = Uri.parse('$typedServerUrl/api/base/job-positions/?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var responseBody = jsonDecode(response.body);
-
-        if (responseBody != null && responseBody['results'] != null) {
-          var results = responseBody['results'];
-
-          if (results.isEmpty) {
-            break;
-          }
-
-          for (var position in results) {
-            final positionName = position['job_position'] ?? '';
-            String positionId = "${position['id']}";
-            employeeJobPositionRecord.add(positionName);
-            positionIdMap[positionName] = positionId;
-          }
-        } else {
-          break;
+        for (var position in jsonDecode(response.body)['results']) {
+          final positionName = position['job_position'] ?? '';
+          String positionId = "${position['id']}";
+          employeeJobPositionRecord.add(positionName);
+          positionIdMap[positionName] = positionId;
         }
-      } else {
-        break;
       }
     }
   }
 
-  /// Fetches the reporting manager information and updates relevant records.
   Future<void> getReportingManager() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
     for (var page = 1;; page++) {
       var uri = Uri.parse('$typedServerUrl/api/employee/employees/?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var employees = data['results'];
-
-        if (employees.isEmpty) {
-          break;
-        }
-
-        for (var employee in employees) {
+        for (var employee in jsonDecode(response.body)['results']) {
           String firstName = "${employee['employee_first_name']}";
           String employeeId = "${employee['id']}";
           reportingManagerRecord.add(firstName);
           managerIdMap[firstName] = employeeId;
         }
-
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        throw Exception('Failed to load reporting managers');
       }
     }
   }
 
-  /// Retrieves employee types and stores them in records.
   Future<void> getEmployeeType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -610,82 +480,48 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Fetches company data and updates company-related records.
   Future<void> getCompanies() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
     for (var page = 1;; page++) {
       var uri = Uri.parse('$typedServerUrl/api/base/companies/?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var companies = data['results'];
-
-        if (companies.isEmpty) {
-          break;
-        }
-
-        for (var company in companies) {
+        for (var company in jsonDecode(response.body)['results']) {
           String companyName = "${company['company']}";
           String companyId = "${company['id']}";
           companyRecord.add(companyName);
           companyIdMap[companyName] = companyId;
         }
-
-        if (data['next'] == null) {
-          break;
-        }
-      } else {
-        throw Exception('Failed to load companies');
       }
     }
   }
 
-  /// Fetches the department data and updates department-related records.
   Future<void> getEmployeeJobDepartment() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    for (var page = 1; page > 0; page++) {
+    for (var page = 1;; page++) {
       var uri = Uri.parse('$typedServerUrl/api/base/departments/?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var responseBody = jsonDecode(response.body);
-
-        if (responseBody != null && responseBody['results'] != null) {
-          var results = responseBody['results'];
-
-          if (results.isEmpty) {
-            break;
-          }
-
-          for (var department in results) {
-            final departmentName = department['department'] ?? '';
-            String departmentId = "${department['id']}";
-            employeeJobDepartmentRecord.add(departmentName);
-            departmentIdMap[departmentName] = departmentId;
-          }
-        } else {
-          break;
+        for (var department in jsonDecode(response.body)['results']) {
+          final departmentName = department['department'] ?? '';
+          String departmentId = "${department['id']}";
+          employeeJobDepartmentRecord.add(departmentName);
+          departmentIdMap[departmentName] = departmentId;
         }
-      } else {
-        break;
       }
     }
   }
 
-  /// Retrieves the bank information for an employee.
   Future<void> getEmployeeBankInformation() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -704,58 +540,38 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Clears the authentication token and navigates to the login page.
-  Future<void> clearToken(BuildContext context) async {
+  Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
-    String? typedServerUrl = prefs.getString("typed_url");
     await prefs.remove('token');
-    Navigator.pushNamed(context, '/login', arguments: typedServerUrl);
   }
 
-  /// Fetches employee data and updates the employee list.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    for (var page = 1; page > 0; page++) {
+    for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/employee/employee-selector?page=$page');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var responseBody = jsonDecode(response.body);
-
-        if (responseBody != null && responseBody['results'] != null) {
-          var results = responseBody['results'];
-          if (results.isEmpty) {
-            break;
+        setState(() {
+          for (var employee in jsonDecode(response.body)['results']) {
+            final firstName = employee['employee_first_name'] ?? '';
+            final lastName = employee['employee_last_name'] ?? '';
+            final fullName = (firstName.isEmpty ? '' : firstName) +
+                (lastName.isEmpty ? '' : ' $lastName');
+            String employeeId = "${employee['id']}";
+            employeeItems.add(fullName);
+            employeeIdMap[fullName] = employeeId;
           }
-
-          setState(() {
-            for (var employee in results) {
-              final firstName = employee['employee_first_name'] ?? '';
-              final lastName = employee['employee_last_name'] ?? '';
-              final fullName = (firstName.isEmpty ? '' : firstName) +
-                  (lastName.isEmpty ? '' : ' $lastName');
-              String employeeId = "${employee['id']}";
-              employeeItems.add(fullName);
-              employeeIdMap[fullName] = employeeId;
-            }
-          });
-        } else {
-          break;
-        }
-      } else {
-        break;
+        });
       }
     }
   }
 
-  /// Fetches work types and updates work type records.
   Future<void> getWorkType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -778,7 +594,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Fetches rotating work types and updates corresponding records.
   Future<void> getRotatingWorkType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -801,7 +616,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Fetches rotating shifts and updates shift-related records.
   Future<void> getRotatingShift() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -824,7 +638,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Retrieves the requesting shift information and updates shift records.
   Future<void> getRequestingShift() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -846,7 +659,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Updates the personal details of an employee with the provided data.
   Future<void> updateEmployeePersonalDetails(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -878,7 +690,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         "emergency_contact": updatedDetails['emergency_contact'],
         "emergency_contact_name": updatedDetails['emergency_contact_name'],
         "emergency_contact_relation":
-            updatedDetails['emergency_contact_relation'],
+        updatedDetails['emergency_contact_relation'],
         "marital_status": updatedDetails['marital_status'],
         "children": updatedDetails['children'],
       }),
@@ -917,7 +729,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Updates an employee's profile image.
   Future<void> updateEmployeeImage(Map<String, dynamic> updatedDetails,
       checkFile, String fileName, String filePath) async {
     final prefs = await SharedPreferences.getInstance();
@@ -930,7 +741,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
 
     if (checkFile) {
       var attachment =
-          await http.MultipartFile.fromPath('employee_profile', filePath);
+      await http.MultipartFile.fromPath('employee_profile', filePath);
       request.files.add(attachment);
     }
     request.headers['Authorization'] = 'Bearer $token';
@@ -953,7 +764,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Updates the employee's work information with the provided details.
   Future<void> updateEmployeeWorkInfoDetails(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1041,7 +851,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Updates the employee's bank information with the provided details.
   Future<void> updateEmployeeBankInfoDetails(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1065,7 +874,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     http.Response response;
     if (employeeBankId.isEmpty) {
       var uri =
-          Uri.parse('$typedServerUrl/api/employee/employee-bank-details/');
+      Uri.parse('$typedServerUrl/api/employee/employee-bank-details/');
       response = await http.post(uri, headers: headers, body: body);
     } else {
       var uri = Uri.parse(
@@ -1089,7 +898,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Creates a work type request for an employee.
   Future<void> createWorkTypeRequest(
       Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1144,7 +952,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Creates a rotating work type request for an employee.
   Future<void> createRotatingWorkTypeRequest(
       Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1199,7 +1006,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Creates a shift request for an employee.
   Future<void> createShiftRequest(Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1253,7 +1059,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Creates a rotating shift request and handles the response.
   Future<void> createRotatingShiftRequest(
       Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1308,11 +1113,10 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Opens an image picker and returns the selected file.
   Future<XFile?> uploadFile(BuildContext context) async {
     final picker = ImagePicker();
     final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
+    await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       return pickedFile;
     } else {
@@ -1326,7 +1130,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Handles image picking for a specific employee, updates employee details with the image.
   Future<void> _pickImage(int id) async {
     isLoadingImage = true;
     XFile? file = await uploadFile(context);
@@ -1345,16 +1148,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     }
   }
 
-  /// Shows a custom date picker and returns the selected date as a string.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
-    final currentYear = DateTime.now().year;
-
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime(0000),
-      lastDate: DateTime(currentYear),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -1373,49 +1173,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     return null;
   }
 
-  /// Checks user permissions based on the employee ID.
-  void userPermissionChecks() async {
-    final prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString("token");
-    var typedServerUrl = prefs.getString("typed_url");
-    var empId = prefs.getInt("employee_id");
-
-    if (empId != null) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args != null) {
-        var employeeId = args['employee_id'];
-        if (empId == employeeId) {
-          var uri = Uri.parse(
-              '$typedServerUrl/api/base/employee-tab-permission-check');
-          var response = await http.get(uri, headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          });
-
-          if (response.statusCode == 200) {
-            userPermissionCheck = true;
-          }
-        }
-      }
-    }
-
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (args != null) {
-      employeeId = args['employee_id'];
-    }
-    var uri = Uri.parse(
-        '$typedServerUrl/api/base/employee-tab-permission-check?employee_id=$employeeId');
-    var response = await http.get(uri, headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
-    if (response.statusCode == 200) {
-      userPermissionCheck = true;
-    }
-  }
-
   void _showEditPersonalInfo(
       BuildContext context, Map<String, dynamic> employeeDetails) {
     TextEditingController badgeIdController = TextEditingController(
@@ -1425,11 +1182,11 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     TextEditingController lastNameController = TextEditingController(
         text: employeeDetails['employee_last_name']?.toString() ?? '');
     TextEditingController emailController =
-        TextEditingController(text: employeeDetails['email']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['email']?.toString() ?? '');
     TextEditingController phoneController =
-        TextEditingController(text: employeeDetails['phone']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['phone']?.toString() ?? '');
     TextEditingController birthController =
-        TextEditingController(text: employeeDetails['dob']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['dob']?.toString() ?? '');
     TextEditingController genderController = TextEditingController(
         text: employeeDetails['gender']?.toString() ?? '');
     TextEditingController qualificationController = TextEditingController(
@@ -1441,19 +1198,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     TextEditingController countryController = TextEditingController(
         text: employeeDetails['country']?.toString() ?? '');
     TextEditingController stateController =
-        TextEditingController(text: employeeDetails['state']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['state']?.toString() ?? '');
     TextEditingController cityController =
-        TextEditingController(text: employeeDetails['city']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['city']?.toString() ?? '');
     TextEditingController zipCodeController =
-        TextEditingController(text: employeeDetails['zip']?.toString() ?? '');
+    TextEditingController(text: employeeDetails['zip']?.toString() ?? '');
     TextEditingController emergencyContactController = TextEditingController(
         text: employeeDetails['emergency_contact']?.toString() ?? '');
     TextEditingController contactNameController = TextEditingController(
         text: employeeDetails['emergency_contact_name']?.toString() ?? '');
     TextEditingController emergencyContactRelationController =
-        TextEditingController(
-            text: employeeDetails['emergency_contact_relation']?.toString() ??
-                '');
+    TextEditingController(
+        text: employeeDetails['emergency_contact_relation']?.toString() ??
+            '');
     TextEditingController martialStatusController = TextEditingController(
         text: employeeDetails['marital_status']?.toString() ?? '');
     TextEditingController childrenController = TextEditingController(
@@ -1504,14 +1261,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Badge ID',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: badgeIdController,
                             decoration: InputDecoration(
@@ -1519,7 +1276,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                             onChanged: (newValue) {
                               badgeIdController.text = newValue;
@@ -1527,7 +1284,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1540,18 +1297,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: firstNameController,
                                       decoration: InputDecoration(
                                         labelText: "First Name",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         firstNameController.text = newValue;
@@ -1562,7 +1319,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1573,18 +1330,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: lastNameController,
                                       decoration: InputDecoration(
                                         labelText: "Last Name",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         lastNameController.text = newValue;
@@ -1597,7 +1354,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1610,18 +1367,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: emailController,
                                       decoration: InputDecoration(
                                         labelText: "Email",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         emailController.text = newValue;
@@ -1632,7 +1389,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1643,18 +1400,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: phoneController,
                                       decoration: InputDecoration(
                                         labelText: "Phone",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         phoneController.text = newValue;
@@ -1667,7 +1424,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1680,19 +1437,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: birthController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             birthController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -1705,10 +1462,10 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                         border: const OutlineInputBorder(),
                                         labelText: "Date of Birth",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateDob
                                             ? 'Please Choose a DOB'
                                             : null,
@@ -1719,7 +1476,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1730,8 +1487,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     DropdownButtonFormField<String>(
                                       style: const TextStyle(
                                         fontWeight: FontWeight.normal,
@@ -1760,11 +1517,11 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                       decoration: InputDecoration(
                                         labelText: "Gender",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -1774,7 +1531,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1787,18 +1544,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: qualificationController,
                                       decoration: InputDecoration(
                                         labelText: "Qualification",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         qualificationController.text = newValue;
@@ -1809,7 +1566,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1820,20 +1577,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: experienceController,
                                       decoration: InputDecoration(
                                         labelText: "Experience",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
-                                      keyboardType: TextInputType.number,
                                       onChanged: (newValue) {
                                         experienceController.text = newValue;
                                       },
@@ -1845,14 +1601,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Address',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: addressController,
                             decoration: InputDecoration(
@@ -1860,7 +1616,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                             onChanged: (newValue) {
                               addressController.text = newValue;
@@ -1868,7 +1624,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1881,18 +1637,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: cityController,
                                       decoration: InputDecoration(
                                         labelText: "City",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         cityController.text = newValue;
@@ -1903,7 +1659,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1914,18 +1670,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: zipCodeController,
                                       decoration: InputDecoration(
                                         labelText: "Zip Code",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         zipCodeController.text = newValue;
@@ -1938,7 +1694,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1951,18 +1707,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: emergencyContactController,
                                       decoration: InputDecoration(
                                         labelText: "Emergency Contact",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         emergencyContactController.text =
@@ -1974,7 +1730,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1985,18 +1741,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: contactNameController,
                                       decoration: InputDecoration(
                                         labelText: "Contact Name",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         contactNameController.text = newValue;
@@ -2009,7 +1765,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2022,19 +1778,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller:
-                                          emergencyContactRelationController,
+                                      emergencyContactRelationController,
                                       decoration: InputDecoration(
                                         labelText: "Emergency Contact Relation",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                       onChanged: (newValue) {
                                         emergencyContactRelationController
@@ -2046,7 +1802,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2057,15 +1813,15 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     DropdownButtonFormField<String>(
                                       style: const TextStyle(
                                         fontWeight: FontWeight.normal,
                                         color: Colors.black,
                                       ),
                                       value: martialStatusController
-                                              .text.isNotEmpty
+                                          .text.isNotEmpty
                                           ? martialStatusController.text
                                           : null,
                                       items: const [
@@ -2084,16 +1840,16 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                       ],
                                       onChanged: (newValue) {
                                         martialStatusController.text =
-                                            newValue!;
+                                        newValue!;
                                       },
                                       decoration: InputDecoration(
                                         labelText: "Marital Status",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -2103,14 +1859,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Children',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: childrenController,
                             decoration: InputDecoration(
@@ -2118,7 +1874,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                             onChanged: (newValue) {
                               childrenController.text = newValue;
@@ -2158,11 +1914,11 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               "city": cityController.text,
                               "zip": zipCodeController.text,
                               "emergency_contact":
-                                  emergencyContactController.text,
+                              emergencyContactController.text,
                               "emergency_contact_name":
-                                  contactNameController.text,
+                              contactNameController.text,
                               "emergency_contact_relation":
-                                  emergencyContactRelationController.text,
+                              emergencyContactRelationController.text,
                               "marital_status": martialStatusController.text,
                               "children": childrenController.text,
                             };
@@ -2182,9 +1938,9 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -2215,7 +1971,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     TextEditingController jobPositionController = TextEditingController(
         text: employeeWorkInfoRecord['job_position_name']?.toString() ?? '');
     TextEditingController jobRoleController =
-        TextEditingController(text: jobRuleName);
+    TextEditingController(text: jobRuleName);
     TextEditingController shiftInfoController = TextEditingController(
         text: employeeWorkInfoRecord['shift_name']?.toString() ?? '');
     TextEditingController workTypeController = TextEditingController(
@@ -2226,7 +1982,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         text: employeeWorkInfoRecord['basic_salary']?.toString() ?? '');
     TextEditingController reportingManagerController = TextEditingController(
         text: employeeWorkInfoRecord['reporting_manager_first_name']
-                ?.toString() ??
+            ?.toString() ??
             '');
     TextEditingController companyController = TextEditingController(
         text: employeeWorkInfoRecord['company_name']?.toString() ?? '');
@@ -2285,14 +2041,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Department',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: departmentController,
@@ -2310,8 +2066,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return employeeJobDepartmentRecord
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2323,7 +2079,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               setState(() {
                                 editDepartment = suggestion;
                                 selectedEditDepartmentId =
-                                    departmentIdMap[suggestion];
+                                departmentIdMap[suggestion];
                               });
                               departmentController.text = suggestion;
                               _validateDepartment = false;
@@ -2339,28 +2095,26 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
                                 'Error: $error',
-                                style: const TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16),
                               ),
                             ),
                             hideOnEmpty: true,
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Job Position",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: jobPositionController,
@@ -2378,8 +2132,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return employeeJobPositionRecord
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2391,7 +2145,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               setState(() {
                                 editPosition = suggestion;
                                 selectedEditPositionId =
-                                    positionIdMap[suggestion];
+                                positionIdMap[suggestion];
                               });
                               jobPositionController.text = suggestion;
                               _validateJobPosition = false;
@@ -2414,21 +2168,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Shift Information',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: shiftInfoController,
@@ -2446,8 +2198,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return shiftDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2481,21 +2233,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Work Type",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: workTypeController,
@@ -2513,8 +2263,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return workTypeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2527,7 +2277,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                 workTypeController.text = suggestion;
                                 employeeWorkType = suggestion;
                                 selectedEmployeeWorkType =
-                                    workTypeIdMap[suggestion];
+                                workTypeIdMap[suggestion];
                               });
                               _validateWorkType = false;
                             },
@@ -2549,21 +2299,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Job Role',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: jobRoleController,
@@ -2581,8 +2329,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return jobRuleItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2595,7 +2343,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                 jobRoleController.text = suggestion;
                                 employeeJobRole = suggestion;
                                 selectedEmployeeJobRole =
-                                    jobRuleIdMap[suggestion];
+                                jobRuleIdMap[suggestion];
                               });
                               _validateJobRule = false;
                             },
@@ -2617,21 +2365,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Work Mail",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: workMailController,
                             decoration: InputDecoration(
@@ -2639,7 +2385,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateMail
                                   ? 'Please Choose a Work Mail'
                                   : null,
@@ -2651,14 +2397,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee Type',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: employeeTypeController,
@@ -2676,8 +2422,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return employeeTypeRecord
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2690,7 +2436,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                 employeeTypeController.text = suggestion;
                                 employeeType = suggestion;
                                 selectedEmployeeType =
-                                    employeeTypeIdMap[suggestion];
+                                employeeTypeIdMap[suggestion];
                               });
                               _validateEmployeeType = false;
                             },
@@ -2712,21 +2458,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Salary",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: salaryController,
                             decoration: InputDecoration(
@@ -2734,7 +2478,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateSalary
                                   ? 'Salary can not be empty'
                                   : null,
@@ -2746,14 +2490,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Reporting Manager',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: reportingManagerController,
@@ -2771,8 +2515,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return reportingManagerRecord
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2785,7 +2529,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                 reportingManagerController.text = suggestion;
                                 reportingManager = suggestion;
                                 selectedReportingManager =
-                                    managerIdMap[suggestion];
+                                managerIdMap[suggestion];
                               });
                               _validateManager = false;
                             },
@@ -2807,21 +2551,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Company",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: companyController,
@@ -2839,8 +2581,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             suggestionsCallback: (pattern) {
                               return companyRecord
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2874,21 +2616,19 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Work Location',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: workLocationController,
                             decoration: InputDecoration(
@@ -2896,7 +2636,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateWorkLocation
                                   ? 'Please Add Work Location'
                                   : null,
@@ -2908,14 +2648,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Joining Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: joiningDateController,
@@ -2938,7 +2678,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelText: "Joining Date",
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateJoiningDate
                                   ? 'Please Choose a Joining Date'
                                   : null,
@@ -2946,14 +2686,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'End Date',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: endDateController,
@@ -2976,7 +2716,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelText: "End Date",
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateEndDate
                                   ? 'Please Choose a End Date'
                                   : null,
@@ -2984,14 +2724,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Salary Per Hour",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: salaryPerHourController,
                             decoration: InputDecoration(
@@ -2999,7 +2739,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateSalaryPerHour
                                   ? 'Please Add Salary Per Hour'
                                   : null,
@@ -3011,7 +2751,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                         ],
                       ),
                     ),
@@ -3056,9 +2796,9 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               "email": workMailController.text,
                               "basic_salary": salaryController.text,
                               "reporting_manager_id":
-                                  selectedReportingManager ??
-                                      employeeWorkInfoRecord[
-                                          'reporting_manager_id'],
+                              selectedReportingManager ??
+                                  employeeWorkInfoRecord[
+                                  'reporting_manager_id'],
                               "company_id": selectedCompany ??
                                   employeeWorkInfoRecord['company_id'],
                               "employee_type_id": selectedEmployeeType ??
@@ -3085,9 +2825,9 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -3158,7 +2898,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -3171,18 +2911,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: bankNameController,
                                       decoration: InputDecoration(
                                         labelText: "Bank Name",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateBankName
                                             ? 'Please Add a Bank Name'
                                             : null,
@@ -3197,7 +2937,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3208,24 +2948,24 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
-                                      controller: accountNumberController,
+                                      controller: bankNameController,
                                       decoration: InputDecoration(
                                         labelText: "Account Number",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateAccountNumber
                                             ? 'Please Add a Account Number'
                                             : null,
                                       ),
                                       onChanged: (newValue) {
-                                        accountNumberController.text = newValue;
+                                        bankNameController.text = newValue;
                                         _validateAccountNumber = false;
                                       },
                                     ),
@@ -3236,7 +2976,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -3249,18 +2989,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: branchController,
                                       decoration: InputDecoration(
                                         labelText: "Branch",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateBranch
                                             ? 'Please Add a Branch Name'
                                             : null,
@@ -3275,7 +3015,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3286,18 +3026,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: bankCodeOneController,
                                       decoration: InputDecoration(
                                         labelText: "Bank Code #1",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateBankCodeOne
                                             ? 'Please Add Bank Code #1'
                                             : null,
@@ -3314,14 +3054,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Bank Address",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: bankAddressController,
                             decoration: InputDecoration(
@@ -3329,7 +3069,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateBankAddress
                                   ? 'Please Add Bank Address'
                                   : null,
@@ -3341,7 +3081,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -3354,18 +3094,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: cityController,
                                       decoration: InputDecoration(
                                         labelText: "City",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateCity
                                             ? 'Please Add a City Name'
                                             : null,
@@ -3380,7 +3120,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3391,18 +3131,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: bankCodeTwoController,
                                       decoration: InputDecoration(
                                         labelText: "Bank Code #2",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateBankCodeTwo
                                             ? 'Please Add Bank Code #2'
                                             : null,
@@ -3437,7 +3177,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               _showEditBankInfo(
                                   context, firstName, employeeBankRecord);
                             });
-                          } else if (accountNumberController.text.isEmpty) {
+                          } else if (bankNameController.text.isEmpty) {
                             setState(() {
                               _validateBankName = false;
                               _validateAccountNumber = true;
@@ -3489,7 +3229,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                               "id": employeeBankRecord['id'],
                               "employee_id": employeeBankRecord['employee_id'],
                               "bank_name": bankNameController.text,
-                              "account_number": accountNumberController.text,
+                              "account_number": bankNameController.text,
                               "branch_name": branchController.text,
                               "bank_one_code": bankCodeOneController.text,
                               "bank_address": bankAddressController.text,
@@ -3513,9 +3253,9 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -3579,7 +3319,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         _errorMessage = null;
         bankNameController.text =
             employeeBankRecord['bank_name']?.toString() ?? '';
-        accountNumberController.text =
+        bankNameController.text =
             employeeBankRecord['account_number']?.toString() ?? '';
         branchController.text = employeeBankRecord['branch']?.toString() ?? '';
         bankCodeOneController.text =
@@ -3604,10 +3344,10 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     badgeController.text = employeeDetails['badge_id'] ?? '';
     emailController.text = employeeDetails['email'] ?? '';
     phoneController.text = employeeDetails['phone'] ?? '';
-    workEmailController.text = employeeWorkInfoRecord['email'] ?? '';
-    workPhoneController.text = employeeWorkInfoRecord['phone'] ?? '';
+    workEmailController.text = employeeDetails['email'] ?? '';
+    workPhoneController.text = employeeDetails['phone'] ?? '';
     final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     bool permissionCheck = args?['permission_check'] ?? false;
     bool checkManager = permissionCheck ||
         (employeeDetails['id'] != null && employeeDetails['id'] == employeeId);
@@ -3617,27 +3357,28 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         automaticallyImplyLeading: false,
         backgroundColor: Colors.red,
         actions: [
+          if (checkManager)
+            Visibility(
+              visible: employeeDetails['id'] != null,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                color: Colors.white,
+                onPressed: () => _showEditOptions(context, employeeDetails,
+                    firstName, employeeWorkInfoRecord, employeeBankRecord),
+              ),
+            ),
           Visibility(
-            visible: userPermissionCheck,
+            visible: employeeDetails['id'] != null &&
+                employeeDetails['id'] == employeeId,
             child: IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.logout),
               color: Colors.white,
-              onPressed: () => _showEditOptions(context, employeeDetails,
-                  firstName, employeeWorkInfoRecord, employeeBankRecord),
+              onPressed: () async {
+                await clearToken();
+                Navigator.pushNamed(context, '/login');
+              },
             ),
           ),
-          Visibility(
-              visible: employeeDetails['id'] != null &&
-                  employeeDetails['id'] == employeeId,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.logout,
-                  color: Colors.white,
-                ),
-                onPressed: () async {
-                  await clearToken(context);
-                },
-              )),
         ],
       ),
       body: Stack(
@@ -3650,69 +3391,73 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 500,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Future.delayed(const Duration(milliseconds: 1000), () {
-                      Navigator.pushNamed(context, '/home');
-                    });
-                    break;
-                  case 1:
-                    Future.delayed(const Duration(milliseconds: 1000), () {
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                    });
-                    break;
-                  case 2:
-                    Future.delayed(const Duration(milliseconds: 1000), () {
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                    });
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 500,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                Navigator.pushNamed(context, '/home');
+              });
+              break;
+            case 1:
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                Navigator.pushNamed(
+                    context, '/employee_checkin_checkout');
+              });
+              break;
+            case 2:
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                Navigator.pushNamed(context, '/employees_form',
+                    arguments: arguments);
+              });
+              break;
+          }
+        },
+      )
           : null,
     );
   }
@@ -3738,8 +3483,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Information Updated Successfully",
@@ -3782,8 +3526,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Information Updated Successfully",
@@ -3826,8 +3569,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Information Updated Successfully",
@@ -3851,7 +3593,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
 
   Widget _buildLoadingWidget() {
     final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     bool permissionCheck = args?['permission_check'] ?? false;
     bool showWorkTypeAndShiftTab = permissionCheck ||
         (employeeDetails['id'] != null && employeeDetails['id'] == employeeId);
@@ -3938,7 +3680,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     children: [
                                       Padding(
                                         padding:
-                                            const EdgeInsets.only(top: 12.0),
+                                        const EdgeInsets.only(top: 12.0),
                                         child: Row(
                                           children: [
                                             Expanded(
@@ -3947,18 +3689,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                   Flexible(
                                                     child: Column(
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      CrossAxisAlignment
+                                                          .start,
                                                       children: [
                                                         const Row(
                                                           mainAxisSize:
-                                                              MainAxisSize.min,
+                                                          MainAxisSize.min,
                                                           children: [
                                                             Padding(
                                                               padding: EdgeInsets
                                                                   .only(
-                                                                      right:
-                                                                          8.0),
+                                                                  right:
+                                                                  8.0),
                                                               child: Icon(
                                                                   Icons.email,
                                                                   color: Colors
@@ -3970,8 +3712,8 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                               style: TextStyle(
                                                                 fontSize: 15.0,
                                                                 fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                FontWeight
+                                                                    .bold,
                                                                 color: Colors
                                                                     .black,
                                                               ),
@@ -3980,7 +3722,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                         ),
                                                         TextField(
                                                           decoration:
-                                                              const InputDecoration(
+                                                          const InputDecoration(
                                                             icon: Icon(
                                                                 Icons.email,
                                                                 color: Colors
@@ -3990,10 +3732,10 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                                 .none,
                                                           ),
                                                           controller:
-                                                              workEmailController,
+                                                          workEmailController,
                                                           enabled: false,
                                                           style:
-                                                              const TextStyle(
+                                                          const TextStyle(
                                                             fontSize: 13.0,
                                                             color: Colors.black,
                                                           ),
@@ -4008,11 +3750,11 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                             Flexible(
                                               child: Column(
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                CrossAxisAlignment.start,
                                                 children: [
                                                   const Row(
                                                     mainAxisSize:
-                                                        MainAxisSize.min,
+                                                    MainAxisSize.min,
                                                     children: [
                                                       Icon(Icons.phone,
                                                           color: Colors.red,
@@ -4022,7 +3764,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                         style: TextStyle(
                                                           fontSize: 15.0,
                                                           fontWeight:
-                                                              FontWeight.bold,
+                                                          FontWeight.bold,
                                                           color: Colors.black,
                                                         ),
                                                       ),
@@ -4036,15 +3778,15 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                     },
                                                     child: TextField(
                                                       decoration:
-                                                          const InputDecoration(
+                                                      const InputDecoration(
                                                         icon: Icon(Icons.phone,
                                                             color: Colors.white,
                                                             size: 13),
                                                         border:
-                                                            InputBorder.none,
+                                                        InputBorder.none,
                                                       ),
                                                       controller:
-                                                          workPhoneController,
+                                                      workPhoneController,
                                                       enabled: false,
                                                       style: const TextStyle(
                                                         fontSize: 13.0,
@@ -4067,21 +3809,21 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                 Flexible(
                                                   child: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
+                                                    CrossAxisAlignment
+                                                        .start,
                                                     children: [
                                                       const Row(
                                                         mainAxisSize:
-                                                            MainAxisSize.min,
+                                                        MainAxisSize.min,
                                                         children: [
                                                           Padding(
                                                             padding:
-                                                                EdgeInsets.only(
-                                                                    right: 8.0),
+                                                            EdgeInsets.only(
+                                                                right: 8.0),
                                                             child: Icon(
                                                                 Icons.email,
                                                                 color:
-                                                                    Colors.red,
+                                                                Colors.red,
                                                                 size: 15),
                                                           ),
                                                           Text(
@@ -4089,28 +3831,28 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                             style: TextStyle(
                                                               fontSize: 15.0,
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              FontWeight
+                                                                  .bold,
                                                               color:
-                                                                  Colors.black,
+                                                              Colors.black,
                                                             ),
                                                           ),
                                                         ],
                                                       ),
                                                       TextField(
                                                         decoration:
-                                                            const InputDecoration(
+                                                        const InputDecoration(
                                                           icon: Icon(
                                                               Icons
                                                                   .email_outlined,
                                                               color:
-                                                                  Colors.white,
+                                                              Colors.white,
                                                               size: 13),
                                                           border:
-                                                              InputBorder.none,
+                                                          InputBorder.none,
                                                         ),
                                                         controller:
-                                                            emailController,
+                                                        emailController,
                                                         enabled: false,
                                                         style: const TextStyle(
                                                           fontSize: 13.0,
@@ -4127,11 +3869,11 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                           Flexible(
                                             child: Column(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                               children: [
                                                 const Row(
                                                   mainAxisSize:
-                                                      MainAxisSize.min,
+                                                  MainAxisSize.min,
                                                   children: [
                                                     Icon(Icons.phone,
                                                         color: Colors.red,
@@ -4141,7 +3883,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                       style: TextStyle(
                                                         fontSize: 15.0,
                                                         fontWeight:
-                                                            FontWeight.bold,
+                                                        FontWeight.bold,
                                                         color: Colors.black,
                                                       ),
                                                     ),
@@ -4154,7 +3896,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                   },
                                                   child: TextField(
                                                     decoration:
-                                                        const InputDecoration(
+                                                    const InputDecoration(
                                                       icon: Icon(Icons.phone,
                                                           color: Colors.white,
                                                           size: 13),
@@ -4198,13 +3940,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                   ),
                                   tabs: [
                                     const Tab(text: 'About'),
-                                    if (userPermissionCheck)
+                                    if (showWorkTypeAndShiftTab)
                                       const Tab(text: 'Work Type & Shift'),
                                   ],
                                 ),
                                 SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height * 0.5,
+                                  MediaQuery.of(context).size.height * 0.5,
                                   child: TabBarView(
                                     controller: _tabController,
                                     children: [
@@ -4239,7 +3981,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
 
   Widget _buildEmployeeDetailsWidget() {
     final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     bool permissionCheck = args?['permission_check'] ?? false;
     bool showWorkTypeAndShiftTab = permissionCheck ||
         (employeeDetails['id'] != null && employeeDetails['id'] == employeeId);
@@ -4275,7 +4017,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                             child: Stack(
                               children: [
                                 if (employeeDetails['employee_profile'] !=
-                                        null &&
+                                    null &&
                                     employeeDetails['employee_profile']
                                         .isNotEmpty)
                                   Positioned.fill(
@@ -4293,7 +4035,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                   ),
                                 if (employeeDetails['employee_profile'] ==
-                                        null ||
+                                    null ||
                                     employeeDetails['employee_profile'].isEmpty)
                                   Positioned.fill(
                                     child: Container(
@@ -4398,16 +4140,16 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               Flexible(
                                                 child: Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                                   children: [
                                                     const Row(
                                                       mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      MainAxisSize.min,
                                                       children: [
                                                         Padding(
                                                           padding:
-                                                              EdgeInsets.only(
-                                                                  right: 8.0),
+                                                          EdgeInsets.only(
+                                                              right: 8.0),
                                                           child: Icon(
                                                               Icons.email,
                                                               color: Colors.red,
@@ -4418,7 +4160,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                           style: TextStyle(
                                                             fontSize: 15.0,
                                                             fontWeight:
-                                                                FontWeight.bold,
+                                                            FontWeight.bold,
                                                             color: Colors.black,
                                                           ),
                                                         ),
@@ -4426,16 +4168,17 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                     ),
                                                     TextField(
                                                       decoration:
-                                                          const InputDecoration(
+                                                      const InputDecoration(
                                                         icon: Icon(Icons.email,
                                                             color: Colors.white,
                                                             size: 13),
                                                         border:
-                                                            InputBorder.none,
+                                                        InputBorder.none,
                                                       ),
                                                       controller:
-                                                          workEmailController,
+                                                      workEmailController,
                                                       enabled: false,
+                                                      // Adjust as needed
                                                       style: const TextStyle(
                                                         fontSize: 13.0,
                                                         color: Colors.black,
@@ -4451,7 +4194,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                         Flexible(
                                           child: Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: [
                                               const Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -4464,7 +4207,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                     style: TextStyle(
                                                       fontSize: 15.0,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                      FontWeight.bold,
                                                       color: Colors.black,
                                                     ),
                                                   ),
@@ -4477,14 +4220,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                 },
                                                 child: TextField(
                                                   decoration:
-                                                      const InputDecoration(
+                                                  const InputDecoration(
                                                     icon: Icon(Icons.phone,
                                                         color: Colors.white,
                                                         size: 13),
                                                     border: InputBorder.none,
                                                   ),
                                                   controller:
-                                                      workPhoneController,
+                                                  workPhoneController,
                                                   enabled: false,
                                                   style: const TextStyle(
                                                     fontSize: 13.0,
@@ -4507,16 +4250,16 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                             Flexible(
                                               child: Column(
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                CrossAxisAlignment.start,
                                                 children: [
                                                   const Row(
                                                     mainAxisSize:
-                                                        MainAxisSize.min,
+                                                    MainAxisSize.min,
                                                     children: [
                                                       Padding(
                                                         padding:
-                                                            EdgeInsets.only(
-                                                                right: 8.0),
+                                                        EdgeInsets.only(
+                                                            right: 8.0),
                                                         child: Icon(Icons.email,
                                                             color: Colors.red,
                                                             size: 15),
@@ -4526,7 +4269,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                         style: TextStyle(
                                                           fontSize: 15.0,
                                                           fontWeight:
-                                                              FontWeight.bold,
+                                                          FontWeight.bold,
                                                           color: Colors.black,
                                                         ),
                                                       ),
@@ -4534,7 +4277,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                   ),
                                                   TextField(
                                                     decoration:
-                                                        const InputDecoration(
+                                                    const InputDecoration(
                                                       icon: Icon(
                                                           Icons.email_outlined,
                                                           color: Colors.white,
@@ -4558,7 +4301,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                       Flexible(
                                         child: Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                           children: [
                                             const Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -4583,7 +4326,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               },
                                               child: TextField(
                                                 decoration:
-                                                    const InputDecoration(
+                                                const InputDecoration(
                                                   icon: Icon(Icons.phone,
                                                       color: Colors.white,
                                                       size: 13),
@@ -4623,13 +4366,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                   ),
                                   tabs: [
                                     const Tab(text: 'About'),
-                                    if (userPermissionCheck)
+                                    if (showWorkTypeAndShiftTab)
                                       const Tab(text: 'Work Type & Shift'),
                                   ],
                                 ),
                                 SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height * 0.46,
+                                  MediaQuery.of(context).size.height * 0.46,
                                   child: TabBarView(
                                     controller: _tabController,
                                     children: [
@@ -4639,24 +4382,23 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                         employeeWorkInfoRecord,
                                         employeeBankRecord,
                                       ),
-                                      if (userPermissionCheck)
-                                        buildTabContentWorkTypeAndShift(
-                                          context,
-                                          employeeWorkTypeRequest,
-                                          employeeWorkTypeRequestCount,
-                                          employeeRotatingWorkTypeRequest,
-                                          employeeRotatingWorkTypeRequestCount,
-                                          employeeShiftRequest,
-                                          employeeShiftRequestCount,
-                                          employeeRotatingShiftRequest,
-                                          employeeRotatingShiftRequestCount,
-                                          employeeDetails,
-                                          baseUrl,
-                                          employeeItems,
-                                          employeeIdMap,
-                                          workTypeIdMap,
-                                          workTypeItem,
-                                        ),
+                                      buildTabContentWorkTypeAndShift(
+                                        context,
+                                        employeeWorkTypeRequest,
+                                        employeeWorkTypeRequestCount,
+                                        employeeRotatingWorkTypeRequest,
+                                        employeeRotatingWorkTypeRequestCount,
+                                        employeeShiftRequest,
+                                        employeeShiftRequestCount,
+                                        employeeRotatingShiftRequest,
+                                        employeeRotatingShiftRequestCount,
+                                        employeeDetails,
+                                        baseUrl,
+                                        employeeItems,
+                                        employeeIdMap,
+                                        workTypeIdMap,
+                                        workTypeItem,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -4693,7 +4435,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     TextEditingController childrenController = TextEditingController();
     TextEditingController emergencyContactController = TextEditingController();
     TextEditingController emergencyContactNameController =
-        TextEditingController();
+    TextEditingController();
     TextEditingController departmentController = TextEditingController();
     TextEditingController jobPositionController = TextEditingController();
     TextEditingController shiftController = TextEditingController();
@@ -4716,37 +4458,36 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
     dateOfBirthController.text = (dob != null && dob.isNotEmpty) ? dob : 'None';
     var gender = employeeDetails['gender'];
     genderController.text =
-        (gender != null && gender.isNotEmpty) ? gender : 'None';
+    (gender != null && gender.isNotEmpty) ? gender : 'None';
     var address = employeeDetails['address'];
     addressController.text =
-        (address != null && address.isNotEmpty) ? address : 'None';
+    (address != null && address.isNotEmpty) ? address : 'None';
     var country = employeeDetails['country'];
     countryController.text =
-        (country != null && country.isNotEmpty) ? country : 'None';
+    (country != null && country.isNotEmpty) ? country : 'None';
     var state = employeeDetails['state'];
     stateController.text = (state != null && state.isNotEmpty) ? state : 'None';
     var city = employeeDetails['city'];
     cityController.text = (city != null && city.isNotEmpty) ? city : 'None';
     var qualification = employeeDetails['qualification'];
     qualificationController.text =
-        (qualification != null && qualification.isNotEmpty)
-            ? qualification
-            : 'None';
+    (qualification != null && qualification.isNotEmpty)
+        ? qualification
+        : 'None';
     experienceController.text =
         employeeDetails['experience']?.toString() ?? 'None';
     maritalStatusController.text = employeeDetails['marital_status'] ?? 'None';
     childrenController.text = employeeDetails['children']?.toString() ?? 'None';
     var emergencyContact = employeeDetails['emergency_contact'];
     emergencyContactController.text =
-        (emergencyContact != null && emergencyContact.isNotEmpty)
-            ? emergencyContact
-            : 'None';
+    (emergencyContact != null && emergencyContact.isNotEmpty)
+        ? emergencyContact
+        : 'None';
     var emergencyContactName = employeeDetails['emergency_contact_name'];
     emergencyContactNameController.text =
-        (emergencyContactName != null && emergencyContactName.isNotEmpty)
-            ? emergencyContactName
-            : 'None';
-
+    (emergencyContactName != null && emergencyContactName.isNotEmpty)
+        ? emergencyContactName
+        : 'None';
     departmentController.text =
         employeeWorkInfoRecord['department_name'] ?? 'None';
     jobPositionController.text =
@@ -4766,12 +4507,10 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
         employeeWorkInfoRecord['date_joining'] ?? 'None';
     endDateController.text =
         employeeWorkInfoRecord['contract_end_date'] ?? 'None';
-
     tagsController.text = (employeeWorkInfoRecord['tags'] is List &&
-            employeeWorkInfoRecord['tags'].isNotEmpty)
-        ? employeeWorkInfoRecord['tags'].map((tag) => tag['title']).join('\n')
+        employeeWorkInfoRecord['tags'].isNotEmpty)
+        ? employeeWorkInfoRecord['tags'].join(', ')
         : (employeeWorkInfoRecord['tags']?.toString() ?? 'None');
-
     bankNameController.text = employeeBankRecord['bank_name'] ?? 'None';
     accountNumberController.text =
         employeeBankRecord['account_number']?.toString() ?? 'None';
@@ -4818,19 +4557,22 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                       collapsedBackgroundColor: Colors.red.shade50,
                       title: titleIcon != null
                           ? Row(
-                              children: [
-                                SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.0493,
-                                    child: Icon(titleIcon, color: Colors.red)),
-                                const SizedBox(width: 8),
-                                Text(
-                                  titleText,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            )
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.0493,
+                            child: Icon(titleIcon, color: Colors.red),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              titleText,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      )
                           : Text(titleText),
                       children: [
                         Column(
@@ -4860,21 +4602,18 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                   ),
                                   padding: const EdgeInsets.all(8),
-                                  child: Column(
+                                  child: Row(
                                     children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
                                               decoration: const InputDecoration(
-                                                labelText: 'Date Of Birth',
+                                                labelText: 'Date of Birth',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -4883,42 +4622,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Qualification',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller:
-                                                  qualificationController,
-                                              maxLines: null,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Gender',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -4927,41 +4637,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Experience',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller: experienceController,
-                                              maxLines: null,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Address',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -4970,42 +4652,28 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
-                                                labelText: 'Marital Status',
+                                                labelText: 'Country',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
-                                              controller:
-                                                  maritalStatusController,
+                                              controller: countryController,
                                               maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'State',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -5014,42 +4682,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Emergency Contact',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller:
-                                                  emergencyContactController,
-                                              maxLines: null,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'City',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -5058,10 +4697,91 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Qualification',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller:
+                                              qualificationController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Experience',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: experienceController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Marital Status',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller:
+                                              maritalStatusController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Children',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: childrenController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Emergency Contact',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller:
+                                              emergencyContactController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Contact Name',
                                                 labelStyle: TextStyle(
@@ -5073,13 +4793,13 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                                 border: InputBorder.none,
                                               ),
                                               controller:
-                                                  emergencyContactNameController,
+                                              emergencyContactNameController,
                                               maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -5109,228 +4829,96 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                   ),
                                   padding: const EdgeInsets.all(8),
-                                  child: Column(
+                                  child: Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Department',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
                                               controller: departmentController,
-                                              maxLines: 1,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Reporting Manager',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller:
-                                                  reportingManagerController,
                                               maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Job Position',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
                                               controller: jobPositionController,
-                                              maxLines: 1,
+                                              maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Company',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller: companyController,
-                                              maxLines: 1,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Shift Information',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
                                               controller: shiftController,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                              maxLines: 1,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Work Location',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller: locationController,
-                                              maxLines: 1,
+                                              maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Work Type',
+                                                // Original label text
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
                                               controller: workTypeController,
-                                              maxLines: 1,
+                                              maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'Joining Date',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller: joiningDateController,
-                                              maxLines: 1,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Employee Type',
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
                                               controller:
-                                                  employeeTypeController,
-                                              maxLines: 1,
+                                              employeeTypeController,
+                                              maxLines: null,
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: TextField(
-                                              decoration: const InputDecoration(
-                                                labelText: 'End Date',
-                                                labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                                enabled: false,
-                                                border: InputBorder.none,
-                                              ),
-                                              controller: endDateController,
-                                              maxLines: 1,
-                                              style: const TextStyle(
-                                                  color: Colors.grey),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
+                                            TextField(
                                               decoration: const InputDecoration(
                                                 labelText: 'Salary',
+                                                // Original label text
                                                 labelStyle: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
                                                 enabled: false,
                                                 border: InputBorder.none,
                                               ),
@@ -5339,89 +4927,105 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                               style: const TextStyle(
                                                   color: Colors.grey),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const TextField(
-                                                  decoration: InputDecoration(
-                                                    labelText: 'Tags',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 15,
-                                                      color: Colors.black,
-                                                    ),
-                                                    enabled: false,
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  maxLines: null,
-                                                  style: TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Wrap(
-                                                  spacing: 2.0,
-                                                  runSpacing: 2.0,
-                                                  children: (employeeWorkInfoRecord[
-                                                              'tags'] is List &&
-                                                          employeeWorkInfoRecord[
-                                                                  'tags']
-                                                              .isNotEmpty)
-                                                      ? employeeWorkInfoRecord[
-                                                              'tags']
-                                                          .map<Widget>((tag) {
-                                                          Color chipColor = Color(
-                                                              int.parse(tag[
-                                                                      'color']
-                                                                  .replaceAll(
-                                                                      '#',
-                                                                      '0xFF')));
-                                                          return Chip(
-                                                            label: Text(
-                                                              tag['title'],
-                                                              style: const TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 12),
-                                                            ),
-                                                            labelPadding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        4.0),
-                                                            backgroundColor:
-                                                                chipColor,
-                                                            visualDensity:
-                                                                VisualDensity
-                                                                    .compact,
-                                                            padding:
-                                                                EdgeInsets.zero,
-                                                          );
-                                                        }).toList()
-                                                      : [
-                                                          const Chip(
-                                                            label: Text('None',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        12)),
-                                                            backgroundColor:
-                                                                Colors.grey,
-                                                            visualDensity:
-                                                                VisualDensity
-                                                                    .compact,
-                                                          )
-                                                        ],
-                                                ),
-                                              ],
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Reporting Manager',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller:
+                                              reportingManagerController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Company',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: companyController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Work Location',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: locationController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Joining Date',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: joiningDateController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'End Date',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: endDateController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Tags',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: tagsController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -5451,180 +5055,111 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                                     ),
                                   ),
                                   padding: const EdgeInsets.all(8),
-                                  child: Column(
+                                  child: Row(
                                     children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Bank Name',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller:
-                                                      bankNameController,
-                                                  readOnly: true,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Bank Name',
+                                                labelStyle: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                  color: Colors.black,
                                                 ),
-                                              ],
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: bankNameController,
+                                              readOnly: true,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Bank Address',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller:
-                                                      bankAddressController,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Account Number',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller:
+                                              accountNumberController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Branch',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: branchController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Account Number',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller:
-                                                      accountNumberController,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Bank Address',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: bankAddressController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Country',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller: countryController,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'Country',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: countryController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Branch',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller: branchController,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
+                                            TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: 'State',
+                                                labelStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    color: Colors.black),
+                                                enabled: false,
+                                                border: InputBorder.none,
+                                              ),
+                                              controller: stateController,
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                  color: Colors.grey),
                                             ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'State',
-                                                    labelStyle: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                  ),
-                                                  controller: stateController,
-                                                  maxLines: null,
-                                                  style: const TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -5843,6 +5378,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           labelText: 'Shift Request',
                           labelStyle: TextStyle(
                             fontWeight: FontWeight.bold,
+                            // fontSize: 15,
                             color: Colors.black,
                           ),
                           enabled: false,
@@ -5917,6 +5453,7 @@ class _EmployeeFormPageState extends State<EmployeeFormPage>
                           labelText: 'Rotating Shift',
                           labelStyle: TextStyle(
                             fontWeight: FontWeight.bold,
+                            // fontSize: 15,
                             color: Colors.black,
                           ),
                           enabled: false,

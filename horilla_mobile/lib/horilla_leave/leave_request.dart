@@ -54,17 +54,14 @@ class _LeaveRequest extends State<LeaveRequest>
   Map<String, String> leaveItemsIdMap = {};
   Map<String, String> employeeItemsIdMap = {};
   final TextEditingController _typeAheadEditController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadCreateController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadEmployeeCreateController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadEmployeeEditController =
-      TextEditingController();
+  TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _fileNameController = TextEditingController();
-  final _controller = NotchBottomBarController(index: -1);
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late Map<String, dynamic> arguments;
   bool isAction = true;
   bool permissionLeaveTypeCheck = false;
@@ -88,6 +85,7 @@ class _LeaveRequest extends State<LeaveRequest>
   bool _validateEndDate = false;
   bool _validateDescription = false;
   bool _validateEmployee = false;
+  bool _validateAttachment = false;
   int maxCount = 5;
   int allRequestsLength = 0;
   int requestedLength = 0;
@@ -100,6 +98,8 @@ class _LeaveRequest extends State<LeaveRequest>
   var leaveItems = [''];
   late String baseUrl = '';
   late TabController _tabController;
+  final _controller = NotchBottomBarController(index: -1);
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   XFile? pickedFile;
   DateTime? startDate;
   DateTime? endDate;
@@ -131,9 +131,8 @@ class _LeaveRequest extends State<LeaveRequest>
   TextEditingController startDateSelect = TextEditingController();
   TextEditingController endDateSelect = TextEditingController();
   TextEditingController descriptionSelect = TextEditingController();
+  final TextEditingController _fileNameController = TextEditingController();
   Timer? _debounce;
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void initState() {
@@ -145,7 +144,6 @@ class _LeaveRequest extends State<LeaveRequest>
     endDateSelect.text = "Select End Date";
     startDateInput.text = "";
     endDateInput.text = "";
-    checkPermissions();
     prefetchData();
     _simulateLoading();
 
@@ -162,21 +160,13 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Checks and executes necessary permissions for leave-related actions.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
     await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      await permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Checks leave overview permissions by making an API call.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -196,7 +186,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Checks leave type permissions by making an API call.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -216,7 +205,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Checks leave request permissions by making an API call.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -236,7 +224,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Checks leave assignment permissions by making an API call.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -256,7 +243,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Simulates a loading state for the UI.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {
@@ -264,7 +250,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Prefetches employee data and stores it in arguments.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -279,30 +264,28 @@ class _LeaveRequest extends State<LeaveRequest>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
@@ -316,7 +299,6 @@ class _LeaveRequest extends State<LeaveRequest>
     super.dispose();
   }
 
-  /// Displays a delete animation dialog.
   void showDeleteAnimation() {
     String jsonContent = '''
 {
@@ -338,8 +320,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Deleted Successfully",
@@ -361,7 +342,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Displays a reject animation dialog.
   void showRejectAnimation() {
     String jsonContent = '''
 {
@@ -383,8 +363,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Rejected Successfully",
@@ -406,7 +385,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Displays an approve animation dialog.
   void showApproveAnimation() {
     String jsonContent = '''
 {
@@ -428,8 +406,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Approved Successfully",
@@ -451,7 +428,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Displays a create animation dialog.
   void showCreateAnimation() {
     String jsonContent = '''
 {
@@ -473,8 +449,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Created Successfully",
@@ -496,7 +471,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Displays an update animation dialog.
   void showUpdateAnimation() {
     String jsonContent = '''
 {
@@ -518,8 +492,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Updated Successfully",
@@ -541,7 +514,6 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Retrieves the current leave request data based on the provided record ID.
   Future<void> getCurrentLeaveRequest(String recordId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -559,10 +531,9 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Handles scroll events to fetch additional data when reaching the bottom of the scroll view.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getAllLeaveRequest();
@@ -574,14 +545,12 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Updates the file name displayed in the text field.
   void setFileName() {
     setState(() {
       _fileNameController.text = fileName;
     });
   }
 
-  /// Fetches and populates the list of employees for selection.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -608,7 +577,6 @@ class _LeaveRequest extends State<LeaveRequest>
 
   final List<Widget> bottomBarPages = [];
 
-  /// Sets the base URL for API calls from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -617,11 +585,10 @@ class _LeaveRequest extends State<LeaveRequest>
     });
   }
 
-  /// Opens an image picker to upload a file from the gallery.
   Future<XFile?> uploadFile(BuildContext context) async {
     final picker = ImagePicker();
     final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
+    await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       return pickedFile;
     } else {
@@ -635,7 +602,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Displays a custom-styled date picker to select a date.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -669,553 +635,557 @@ class _LeaveRequest extends State<LeaveRequest>
       builder: (BuildContext context) {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-          return Stack(
-            children: [
-              AlertDialog(
-                backgroundColor: Colors.white,
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Add Leave",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        selectedEmployeeId = null;
-                      },
-                    ),
-                  ],
-                ),
-                content: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.95,
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              return Stack(
+                children: [
+                  AlertDialog(
+                    backgroundColor: Colors.white,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (_errorMessage != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              _errorMessage ?? '',
-                              style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Employee",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TypeAheadField<String>(
-                          textFieldConfiguration: TextFieldConfiguration(
-                            controller: _typeAheadEmployeeCreateController,
-                            decoration: InputDecoration(
-                              labelText: 'Choose an employee',
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              border: const OutlineInputBorder(),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              errorText: _validateEmployee
-                                  ? 'Please select a leave type'
-                                  : null,
-                            ),
-                          ),
-                          suggestionsCallback: (pattern) {
-                            return employeeItem
-                                .where((leaveType) => leaveType
-                                    .toLowerCase()
-                                    .contains(pattern.toLowerCase()))
-                                .toList();
-                          },
-                          itemBuilder: (context, String suggestion) {
-                            return ListTile(
-                              title: Text(suggestion),
-                            );
-                          },
-                          onSuggestionSelected: (String suggestion) {
-                            setState(() {
-                              _typeAheadEmployeeCreateController.text =
-                                  suggestion;
-                              editEmployeeType = suggestion;
-                              selectedEmployeeId = employeeIdMap[suggestion];
-                              getLeaveTypes(selectedEmployeeId);
-                              _validateEmployee = false;
-                            });
-                          },
-                          noItemsFoundBuilder: (context) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'No Leave Types Found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          errorBuilder: (context, error) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Error: $error',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          hideOnEmpty: true,
-                          hideOnError: false,
-                          suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                            constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.23),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
                         const Text(
-                          "Leave Type",
-                          style: TextStyle(color: Colors.black),
+                          "Add Leave",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.black),
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TypeAheadField<String>(
-                          textFieldConfiguration: TextFieldConfiguration(
-                            controller: _typeAheadCreateController,
-                            decoration: InputDecoration(
-                              labelText: 'Choose a Leave Type',
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              border: const OutlineInputBorder(),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              errorText: _validateLeaveType
-                                  ? 'Please select a leave type'
-                                  : null,
-                            ),
-                          ),
-                          suggestionsCallback: (pattern) {
-                            return leaveItem
-                                .where((leaveType) => leaveType
-                                    .toLowerCase()
-                                    .contains(pattern.toLowerCase()))
-                                .toList();
-                          },
-                          itemBuilder: (context, String suggestion) {
-                            return ListTile(
-                              title: Text(suggestion),
-                            );
-                          },
-                          onSuggestionSelected: (String suggestion) {
-                            setState(() {
-                              startDate = null;
-                              endDate = null;
-                              _typeAheadCreateController.text = suggestion;
-                              editLeaveType = suggestion;
-                              selectedLeaveId = leaveItemsIdMap[suggestion];
-                              _validateLeaveType = false;
-                            });
-                          },
-                          noItemsFoundBuilder: (context) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'No Leave Types Found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          errorBuilder: (context, error) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Error: $error',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          hideOnEmpty: true,
-                          hideOnError: false,
-                          suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                            constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.23),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Start Date"),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TextField(
-                          readOnly: true,
-                          controller: startDateSelect,
-                          onTap: () async {
-                            final selectedDate = await showCustomDatePicker(
-                                context, DateTime.now());
-                            if (selectedDate != null) {
-                              DateTime parsedDate =
-                                  DateFormat('yyyy-MM-dd').parse(selectedDate);
-                              setState(() {
-                                startDate = parsedDate;
-                                startDateSelect.text =
-                                    DateFormat('yyyy-MM-dd').format(startDate!);
-                                _validateDate = false;
-                              });
-                            }
-                          },
-                          decoration: InputDecoration(
-                            labelText: "Start Date",
-                            labelStyle: TextStyle(color: Colors.grey[350]),
-                            border: const OutlineInputBorder(),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            errorText: _validateDate
-                                ? 'Please select a start date'
-                                : null,
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Start Date Breakdown"),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: DropdownSearch<String>(
-                            items: breakdownMaps.values.toList().cast<String>(),
-                            selectedItem: editStartDateBreakdown,
-                            onChanged: (newValue) {
-                              if (newValue != null) {
-                                editStartDateBreakdown = newValue;
-                                selectedStartDateValue = breakdownMaps.entries
-                                    .firstWhere(
-                                        (entry) => entry.value == newValue)
-                                    .key;
-                                _validateStartDateBreakdown = false;
-                              }
-                            },
-                            dropdownDecoratorProps: DropDownDecoratorProps(
-                              dropdownSearchDecoration: InputDecoration(
-                                errorText: _validateStartDateBreakdown
-                                    ? 'Please select a Start Date Breakdown'
-                                    : null,
-                                border: const OutlineInputBorder(),
-                                labelText: "Start Date Breakdown",
-                                labelStyle: TextStyle(color: Colors.grey[350]),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                              ),
-                            ),
-                            popupProps: PopupProps.menu(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                              showSearchBox: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("End Date"),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TextField(
-                          readOnly: true,
-                          controller: endDateSelect,
-                          onTap: () async {
-                            final selectedDate = await showCustomDatePicker(
-                                context, DateTime.now());
-                            if (selectedDate != null) {
-                              DateTime parsedDate =
-                                  DateFormat('yyyy-MM-dd').parse(selectedDate);
-                              setState(() {
-                                endDate = parsedDate;
-                                endDateSelect.text =
-                                    DateFormat('yyyy-MM-dd').format(endDate!);
-                                _validateEndDate = false;
-                              });
-                            }
-                          },
-                          decoration: InputDecoration(
-                            labelText: "End Date",
-                            labelStyle: TextStyle(color: Colors.grey[350]),
-                            border: const OutlineInputBorder(),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            errorText: _validateEndDate
-                                ? 'Please select an end date'
-                                : null,
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("End Date Breakdown"),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: DropdownSearch<String>(
-                            items: breakdownMaps.values.toList().cast<String>(),
-                            selectedItem: editEndDateBreakdown,
-                            onChanged: (newValue) {
-                              setState(() {
-                                if (newValue != null) {
-                                  editEndDateBreakdown = newValue;
-                                  selectedEndDateValue = breakdownMaps.entries
-                                      .firstWhere(
-                                          (entry) => entry.value == newValue)
-                                      .key;
-                                  _validateEndDateBreakdown = false;
-                                }
-                              });
-                            },
-                            dropdownDecoratorProps: DropDownDecoratorProps(
-                              dropdownSearchDecoration: InputDecoration(
-                                errorText: _validateEndDateBreakdown
-                                    ? 'Please select an End Date Breakdown'
-                                    : null,
-                                border: const OutlineInputBorder(),
-                                labelText: "End Date Breakdown",
-                                labelStyle: TextStyle(color: Colors.grey[350]),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                              ),
-                            ),
-                            popupProps: PopupProps.menu(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                              showSearchBox: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Description"),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TextField(
-                          controller: descriptionSelect,
-                          decoration: InputDecoration(
-                            labelText: "Description",
-                            labelStyle: TextStyle(color: Colors.grey[350]),
-                            border: const OutlineInputBorder(),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            errorText: _validateDescription
-                                ? 'Description cannot be empty'
-                                : null,
-                          ),
-                          onChanged: (newValue) {
-                            descriptionSelect.text = newValue;
-                            _validateDescription = newValue.isEmpty;
-                          },
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.02),
                         IconButton(
-                          icon: const Icon(Icons.attach_file),
-                          onPressed: () async {
-                            XFile? file = await uploadFile(context);
-                            if (file != null) {
-                              setState(() {
-                                pickedFile = file;
-                                fileName = file.name;
-                                filePath = file.path;
-                                checkFile = true;
-                                setFileName();
-                              });
-                            }
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            selectedEmployeeId = null;
                           },
-                        ),
-                        TextField(
-                          controller: _fileNameController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            labelStyle: TextStyle(color: Colors.grey[350]),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 5.0),
-                            suffixIcon: _fileNameController.text.isNotEmpty
-                                ? IconButton(
-                                    padding: EdgeInsets.only(
-                                        bottom:
-                                            MediaQuery.of(context).size.height *
-                                                0.0168),
-                                    icon: const Icon(Icons.close,
-                                        color: Colors.red),
-                                    onPressed: () {
-                                      setState(() {
-                                        _fileNameController.clear();
-                                      });
-                                    },
-                                  )
-                                : null,
-                          ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-                actions: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (isSaveClick == true) {
-                          isSaveClick = false;
-                          if (_typeAheadEmployeeCreateController.text.isEmpty) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateEmployee = true;
-                              _validateLeaveType = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (selectedLeaveId == null) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateLeaveType = true;
-                              _validateEmployee = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (startDate == null) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateDate = true;
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateEndDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (editStartDateBreakdown == null) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateStartDateBreakdown = true;
-                              _validateEndDateBreakdown = false;
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (endDate == null) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateEndDate = true;
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (editEndDateBreakdown == null) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateEndDateBreakdown = true;
-                              _validateStartDateBreakdown = false;
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              _validateDescription = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else if (descriptionSelect.text.isEmpty) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateDescription = true;
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              Navigator.of(context).pop();
-                              showCreateLeaveDialog(context);
-                            });
-                          } else {
-                            setState(() {
-                              _validateEmployee = false;
-                              _validateLeaveType = false;
-                              _validateStartDateBreakdown = false;
-                              _validateEndDateBreakdown = false;
-                              _validateDescription = false;
-                              _validateDate = false;
-                              _validateEndDate = false;
-                              isAction = true;
-                            });
-                            Map<String, dynamic> createdDetails = {
-                              "employee_id": selectedEmployeeId,
-                              "leave_type_id": selectedLeaveId,
-                              'leave_type': selectedLeaveType,
-                              'start_date': startDateSelect.text,
-                              'start_date_breakdown': selectedStartDateValue,
-                              'end_date': endDateSelect.text,
-                              'end_date_breakdown': selectedEndDateValue,
-                              'description': descriptionSelect.text,
-                            };
-                            await createNewLeaveType(
-                                createdDetails, checkFile, fileName, filePath);
-                            setState(() {
-                              isAction = false;
-                            });
-                            if (_errorMessage == null ||
-                                _errorMessage!.isEmpty) {
-                              Navigator.of(context).pop(true);
-                              showCreateAnimation();
-                            } else {
-                              Navigator.of(context).pop(true);
-                              showCreateLeaveDialog(context);
-                            }
-                          }
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.red),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6.0),
-                          ),
+                    content: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.95,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  _errorMessage ?? '',
+                                  style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Employee",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TypeAheadField<String>(
+                              textFieldConfiguration: TextFieldConfiguration(
+                                controller: _typeAheadEmployeeCreateController,
+                                decoration: InputDecoration(
+                                  labelText: 'Choose an employee',
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  errorText: _validateEmployee
+                                      ? 'Please select a leave type'
+                                      : null,
+                                ),
+                              ),
+                              suggestionsCallback: (pattern) {
+                                return employeeItem
+                                    .where((leaveType) => leaveType
+                                    .toLowerCase()
+                                    .contains(pattern.toLowerCase()))
+                                    .toList();
+                              },
+                              itemBuilder: (context, String suggestion) {
+                                return ListTile(
+                                  title: Text(suggestion),
+                                );
+                              },
+                              onSuggestionSelected: (String suggestion) {
+                                setState(() {
+                                  _typeAheadEmployeeCreateController.text =
+                                      suggestion;
+                                  editEmployeeType = suggestion;
+                                  selectedEmployeeId = employeeIdMap[suggestion];
+                                  getLeaveTypes(selectedEmployeeId);
+                                  _validateEmployee = false;
+                                });
+                              },
+                              noItemsFoundBuilder: (context) => const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'No Leave Types Found',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              errorBuilder: (context, error) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Error: $error',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              hideOnEmpty: true,
+                              hideOnError: false,
+                              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                constraints: BoxConstraints(
+                                    maxHeight: MediaQuery.of(context).size.height *
+                                        0.23), // Limit height
+                              ),
+                              // Set initial value
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text(
+                              "Leave Type",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TypeAheadField<String>(
+                              textFieldConfiguration: TextFieldConfiguration(
+                                controller: _typeAheadCreateController,
+                                decoration: InputDecoration(
+                                  labelText: 'Choose a Leave Type',
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  errorText: _validateLeaveType
+                                      ? 'Please select a leave type'
+                                      : null,
+                                ),
+                              ),
+                              suggestionsCallback: (pattern) {
+                                return leaveItem
+                                    .where((leaveType) => leaveType
+                                    .toLowerCase()
+                                    .contains(pattern.toLowerCase()))
+                                    .toList();
+                              },
+                              itemBuilder: (context, String suggestion) {
+                                return ListTile(
+                                  title: Text(suggestion),
+                                );
+                              },
+                              onSuggestionSelected: (String suggestion) {
+                                setState(() {
+                                  startDate = null;
+                                  endDate = null;
+                                  _typeAheadCreateController.text = suggestion;
+                                  editLeaveType = suggestion;
+                                  selectedLeaveId = leaveItemsIdMap[suggestion];
+                                  _validateLeaveType = false;
+                                });
+                              },
+                              noItemsFoundBuilder: (context) => const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'No Leave Types Found',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              errorBuilder: (context, error) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Error: $error',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              hideOnEmpty: true,
+                              hideOnError: false,
+                              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                constraints: BoxConstraints(
+                                    maxHeight: MediaQuery.of(context).size.height *
+                                        0.23), // Limit height
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Start Date"),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TextField(
+                              readOnly: true,
+                              controller: startDateSelect,
+                              onTap: () async {
+                                final selectedDate = await showCustomDatePicker(
+                                    context, DateTime.now());
+                                if (selectedDate != null) {
+                                  DateTime parsedDate =
+                                  DateFormat('yyyy-MM-dd').parse(selectedDate);
+                                  setState(() {
+                                    startDate = parsedDate;
+                                    startDateSelect.text =
+                                        DateFormat('yyyy-MM-dd').format(startDate!);
+                                    _validateDate = false;
+                                  });
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: "Start Date",
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                border: const OutlineInputBorder(),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                                errorText: _validateDate
+                                    ? 'Please select a start date'
+                                    : null,
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Start Date Breakdown"),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: DropdownSearch<String>(
+                                items: breakdownMaps.values.toList().cast<String>(),
+                                selectedItem: editStartDateBreakdown,
+                                onChanged: (newValue) {
+                                  if (newValue != null) {
+                                    editStartDateBreakdown = newValue;
+                                    selectedStartDateValue = breakdownMaps.entries
+                                        .firstWhere(
+                                            (entry) => entry.value == newValue)
+                                        .key;
+                                    _validateStartDateBreakdown = false;
+                                  }
+                                },
+                                dropdownDecoratorProps: DropDownDecoratorProps(
+                                  dropdownSearchDecoration: InputDecoration(
+                                    errorText: _validateStartDateBreakdown
+                                        ? 'Please select a Start Date Breakdown'
+                                        : null,
+                                    border: const OutlineInputBorder(),
+                                    labelText: "Start Date Breakdown",
+                                    labelStyle: TextStyle(color: Colors.grey[350]),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                  ),
+                                ),
+                                popupProps: PopupProps.menu(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23),
+                                  // Set your desired height
+                                  showSearchBox: false,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("End Date"),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TextField(
+                              readOnly: true,
+                              controller: endDateSelect,
+                              onTap: () async {
+                                final selectedDate = await showCustomDatePicker(
+                                    context, DateTime.now());
+                                if (selectedDate != null) {
+                                  DateTime parsedDate =
+                                  DateFormat('yyyy-MM-dd').parse(selectedDate);
+                                  setState(() {
+                                    endDate = parsedDate;
+                                    endDateSelect.text =
+                                        DateFormat('yyyy-MM-dd').format(endDate!);
+                                    _validateEndDate = false;
+                                  });
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: "End Date",
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                border: const OutlineInputBorder(),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                                errorText: _validateEndDate
+                                    ? 'Please select an end date'
+                                    : null,
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("End Date Breakdown"),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: DropdownSearch<String>(
+                                items: breakdownMaps.values.toList().cast<String>(),
+                                selectedItem: editEndDateBreakdown,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    if (newValue != null) {
+                                      editEndDateBreakdown = newValue;
+                                      selectedEndDateValue = breakdownMaps.entries
+                                          .firstWhere(
+                                              (entry) => entry.value == newValue)
+                                          .key;
+                                      _validateEndDateBreakdown = false;
+                                    }
+                                  });
+                                },
+                                dropdownDecoratorProps: DropDownDecoratorProps(
+                                  dropdownSearchDecoration: InputDecoration(
+                                    errorText: _validateEndDateBreakdown
+                                        ? 'Please select an End Date Breakdown'
+                                        : null,
+                                    border: const OutlineInputBorder(),
+                                    labelText: "End Date Breakdown",
+                                    labelStyle: TextStyle(color: Colors.grey[350]),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                  ),
+                                ),
+                                popupProps: PopupProps.menu(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23),
+                                  // Set your desired height
+                                  showSearchBox: false,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Description"),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TextField(
+                              controller: descriptionSelect,
+                              decoration: InputDecoration(
+                                labelText: "Description",
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                border: const OutlineInputBorder(),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                                errorText: _validateDescription
+                                    ? 'Description cannot be empty'
+                                    : null,
+                              ),
+                              onChanged: (newValue) {
+                                descriptionSelect.text = newValue;
+                                _validateDescription = newValue.isEmpty;
+                              },
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.02),
+                            IconButton(
+                              icon: const Icon(Icons.attach_file),
+                              onPressed: () async {
+                                XFile? file = await uploadFile(context);
+                                if (file != null) {
+                                  setState(() {
+                                    pickedFile = file;
+                                    fileName = file.name;
+                                    filePath = file.path;
+                                    checkFile = true;
+                                    setFileName();
+                                  });
+                                }
+                              },
+                            ),
+                            TextField(
+                              controller: _fileNameController,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 5.0),
+                                suffixIcon: _fileNameController.text.isNotEmpty
+                                    ? IconButton(
+                                  padding: EdgeInsets.only(
+                                      bottom:
+                                      MediaQuery.of(context).size.height *
+                                          0.0168),
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.red),
+                                  onPressed: () {
+                                    setState(() {
+                                      _fileNameController.clear();
+                                    });
+                                  },
+                                )
+                                    : null,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Text('Save',
-                          style: TextStyle(color: Colors.white)),
                     ),
+                    actions: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (isSaveClick == true) {
+                              isSaveClick = false;
+                              if (_typeAheadEmployeeCreateController.text.isEmpty) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateEmployee = true;
+                                  _validateLeaveType = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (selectedLeaveId == null) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateLeaveType = true;
+                                  _validateEmployee = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (startDate == null) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateDate = true;
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateEndDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (editStartDateBreakdown == null) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateStartDateBreakdown = true;
+                                  _validateEndDateBreakdown = false;
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (endDate == null) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateEndDate = true;
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (editEndDateBreakdown == null) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateEndDateBreakdown = true;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  _validateDescription = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else if (descriptionSelect.text.isEmpty) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateDescription = true;
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  Navigator.of(context).pop();
+                                  showCreateLeaveDialog(context);
+                                });
+                              } else {
+                                setState(() {
+                                  _validateEmployee = false;
+                                  _validateLeaveType = false;
+                                  _validateStartDateBreakdown = false;
+                                  _validateEndDateBreakdown = false;
+                                  _validateDescription = false;
+                                  _validateAttachment = false;
+                                  _validateDate = false;
+                                  _validateEndDate = false;
+                                  isAction = true;
+                                });
+                                Map<String, dynamic> createdDetails = {
+                                  "employee_id": selectedEmployeeId,
+                                  "leave_type_id": selectedLeaveId,
+                                  'leave_type': selectedLeaveType,
+                                  'start_date': startDateSelect.text,
+                                  'start_date_breakdown': selectedStartDateValue,
+                                  'end_date': endDateSelect.text,
+                                  'end_date_breakdown': selectedEndDateValue,
+                                  'description': descriptionSelect.text,
+                                };
+                                await createNewLeaveType(
+                                    createdDetails, checkFile, fileName, filePath);
+                                setState(() {
+                                  isAction = false;
+                                });
+                                if (_errorMessage == null ||
+                                    _errorMessage!.isEmpty) {
+                                  Navigator.of(context).pop(true);
+                                  showCreateAnimation();
+                                } else {
+                                  Navigator.of(context).pop(true);
+                                  showCreateLeaveDialog(context);
+                                }
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                            shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                            ),
+                          ),
+                          child: const Text('Save',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (isAction)
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                 ],
-              ),
-              if (isAction)
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
-            ],
-          );
-        });
+              );
+            });
       },
     );
     if (employeeID != null) {
@@ -1226,14 +1196,10 @@ class _LeaveRequest extends State<LeaveRequest>
 
   List<String> allEmployeeNames = [];
 
-  /// Fetches all employees' names and updates the local list.
   Future<void> getAllEmployeesName() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-    setState(() {
-      allEmployeeNames.clear();
-    });
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/employee/employee-selector?page=$page');
@@ -1242,21 +1208,16 @@ class _LeaveRequest extends State<LeaveRequest>
         "Authorization": "Bearer $token",
       });
       if (response.statusCode == 200) {
-        var results = jsonDecode(response.body)['results'];
-        if (results.isEmpty) {
-          break;
-        }
-
         setState(() {
+          var results = jsonDecode(response.body)['results'];
+          if (results.isEmpty) {}
           for (var employee in results) {
-            var employeeName = (employee['employee_first_name'] ?? '') +
+            var employeeName = employee['employee_first_name'] +
                 ' ' +
                 (employee['employee_last_name'] ?? '');
-            allEmployeeNames.add(employeeName.trim());
+            allEmployeeNames.add(employeeName);
           }
         });
-      } else {
-        throw Exception('Failed to load employee data');
       }
     }
   }
@@ -1275,14 +1236,14 @@ class _LeaveRequest extends State<LeaveRequest>
     request.fields['description'] = createdDetails['description'];
     request.fields['end_date_breakdown'] = createdDetails['end_date_breakdown'];
     request.fields['start_date_breakdown'] =
-        createdDetails['start_date_breakdown'];
+    createdDetails['start_date_breakdown'];
     request.fields['start_date'] = createdDetails['start_date'];
     request.fields['end_date'] = createdDetails['end_date'];
     request.fields['leave_type_id'] =
         createdDetails['leave_type_id'].toString();
     if (checkfile) {
       var attachment =
-          await http.MultipartFile.fromPath('attachment', filePath);
+      await http.MultipartFile.fromPath('attachment', filePath);
       request.files.add(attachment);
     }
     request.headers['Authorization'] = 'Bearer $token';
@@ -1332,14 +1293,13 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the leave types for a specific employee.
   Future<void> getLeaveTypes(selectedEmployeeId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var employeeID = selectedEmployeeId ?? prefs.getInt("employee_id");
     var uri =
-        Uri.parse('$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
+    Uri.parse('$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -1365,7 +1325,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Approves a leave request.
   Future<void> approveRequest(int approveId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1392,12 +1351,12 @@ class _LeaveRequest extends State<LeaveRequest>
           }
         }
       });
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Rejects a leave request.
   Future<void> rejectRequest(int rejectId, String rejectionReason) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1432,12 +1391,12 @@ class _LeaveRequest extends State<LeaveRequest>
           }
         }
       });
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// deletes a leave request.
   Future<void> deleteRequest(int leaveId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1460,12 +1419,12 @@ class _LeaveRequest extends State<LeaveRequest>
       getCancelledCount();
       getRejectedCount();
       setState(() {});
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Cancels a leave request.
   Future<void> cancelRequest(int cancelId, String description) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1488,7 +1447,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches all available leave type names.
   Future<void> getAllLeaveTypeName() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1510,7 +1468,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the list of employees.
   Future<void> getListEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1540,510 +1497,512 @@ class _LeaveRequest extends State<LeaveRequest>
       builder: (BuildContext context) {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-          return Stack(
-            children: [
-              AlertDialog(
-                backgroundColor: Colors.white,
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Edit Leave",
-                      style: TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
+              return Stack(
+                children: [
+                  AlertDialog(
+                    backgroundColor: Colors.white,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Edit Leave",
+                          style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.grey),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                content: SingleChildScrollView(
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.95,
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                _errorMessage ?? '',
-                                style: const TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text("Employee"),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          TypeAheadField<String>(
-                            textFieldConfiguration: TextFieldConfiguration(
-                              controller: _typeAheadEmployeeEditController,
-                              decoration: InputDecoration(
-                                labelText: 'Choose an employee',
-                                labelStyle: TextStyle(color: Colors.grey[350]),
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                                errorText: _validateEmployee
-                                    ? 'Please select a leave type'
-                                    : null,
-                              ),
-                            ),
-                            suggestionsCallback: (pattern) {
-                              return employeeItem
-                                  .where((leaveType) => leaveType
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
-                                  .toList();
-                            },
-                            itemBuilder: (context, String suggestion) {
-                              return ListTile(
-                                title: Text(suggestion),
-                              );
-                            },
-                            onSuggestionSelected: (String suggestion) {
-                              setState(() {
-                                _typeAheadEmployeeEditController.text =
-                                    suggestion;
-                                editEmployeeType = suggestion;
-                                selectedEmployeeId = employeeIdMap[suggestion];
-                                getLeaveTypes(selectedEmployeeId);
-                                _validateEmployee = false;
-                              });
-                            },
-                            noItemsFoundBuilder: (context) => const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'No Leave Types Found',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            errorBuilder: (context, error) => Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Error: $error',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            hideOnEmpty: true,
-                            hideOnError: false,
-                            suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Text(
-                            "Leave Type",
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          TypeAheadField<String>(
-                            textFieldConfiguration: TextFieldConfiguration(
-                              controller: _typeAheadEditController,
-                              decoration: InputDecoration(
-                                labelText: 'Choose a Leave Type',
-                                labelStyle: TextStyle(color: Colors.grey[350]),
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                                errorText: _validateLeaveType
-                                    ? 'Please select a leave type'
-                                    : null,
-                              ),
-                            ),
-                            suggestionsCallback: (pattern) {
-                              return leaveItem
-                                  .where((leaveType) => leaveType
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
-                                  .toList();
-                            },
-                            itemBuilder: (context, String suggestion) {
-                              return ListTile(
-                                title: Text(suggestion),
-                              );
-                            },
-                            onSuggestionSelected: (String suggestion) {
-                              setState(() {
-                                _typeAheadEditController.text = suggestion;
-                                editLeaveType = suggestion;
-                                selectedLeaveId = leaveItemsIdMap[suggestion];
-                                _validateLeaveType = false;
-                              });
-                            },
-                            noItemsFoundBuilder: (context) => const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'No Leave Types Found',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            errorBuilder: (context, error) => Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Error: $error',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            hideOnEmpty: true,
-                            hideOnError: false,
-                            suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text("Start Date"),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: TextField(
-                              readOnly: true,
-                              controller: startDateInput,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 10.0),
-                                hintText: "Select Date",
-                              ),
-                              onTap: () async {
-                                final selectedDate = await showCustomDatePicker(
-                                    context, DateTime.now());
-                                if (selectedDate != null) {
-                                  DateTime parsedDate = DateFormat('yyyy-MM-dd')
-                                      .parse(selectedDate);
-                                  setState(() {
-                                    startDate = parsedDate;
-                                    startDateInput.text =
-                                        DateFormat('yyyy-MM-dd')
-                                            .format(startDate!);
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text(" Start Date Breakdown "),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          DropdownSearch<String>(
-                            items: breakdownMaps.values.toList().cast<String>(),
-                            selectedItem:
-                                breakdownMaps[record['start_date_breakdown']],
-                            onChanged: (newValue) {
-                              selectedStartDateValue = breakdownMaps.entries
-                                  .firstWhere(
-                                      (entry) => entry.value == newValue)
-                                  .key;
-                              editStartDateBreakdown = selectedStartDateValue;
-                            },
-                            popupProps: PopupProps.menu(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                              showSearchBox: false,
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text("End Date"),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: TextField(
-                              readOnly: true,
-                              controller: endDateInput,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 10.0),
-                                hintText: "Select Date",
-                              ),
-                              onTap: () async {
-                                final selectedDate = await showCustomDatePicker(
-                                    context, DateTime.now());
-                                if (selectedDate != null) {
-                                  DateTime parsedDate = DateFormat('yyyy-MM-dd')
-                                      .parse(selectedDate);
-                                  setState(() {
-                                    endDate = parsedDate;
-                                    endDateInput.text = DateFormat('yyyy-MM-dd')
-                                        .format(endDate!);
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text("End Date Breakdown"),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          DropdownSearch<String>(
-                            items: breakdownMaps.values.toList().cast<String>(),
-                            selectedItem:
-                                breakdownMaps[record['end_date_breakdown']],
-                            onChanged: (newValue) {
-                              selectedEndDateValue = breakdownMaps.entries
-                                  .firstWhere(
-                                      (entry) => entry.value == newValue)
-                                  .key;
-                              editEndDateBreakdown = selectedEndDateValue;
-                            },
-                            popupProps: PopupProps.menu(
-                              constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
-                              showSearchBox: false,
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Text("Description"),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: TextField(
-                              controller: leaveDescription,
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                                errorText: _validateDescription
-                                    ? 'Description cannot be empty'
-                                    : null,
-                              ),
-                              onChanged: (newValue) {
-                                leaveDescription.text = newValue;
-                                _validateDescription = newValue.isEmpty;
-                              },
-                            ),
-                          ),
-                          if (currentLeaveRequests.isNotEmpty &&
-                              currentLeaveRequests[0]['attachment'] != null)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Attachment',
-                                  style: TextStyle(color: Colors.grey.shade700),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    String pdfPath =
-                                        currentLeaveRequests[0]['attachment'];
-                                    if (pdfPath.endsWith('.png') ||
-                                        pdfPath.endsWith('.jpg') ||
-                                        pdfPath.endsWith('.jpeg') ||
-                                        pdfPath.endsWith('.gif')) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ImageViewer(imagePath: pdfPath),
-                                        ),
-                                      );
-                                    } else {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/attachment_view',
-                                        arguments: pdfPath,
-                                      );
-                                    }
-                                  },
-                                  child: const Text(
-                                    'View Attachment',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      color: Colors.blue,
-                                    ),
+                    content: SingleChildScrollView(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.95,
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_errorMessage != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    _errorMessage ?? '',
+                                    style: const TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                              ],
-                            ),
-                          SizedBox(
-                              height:
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text("Employee"),
+                              ),
+                              SizedBox(
+                                  height:
                                   MediaQuery.of(context).size.height * 0.01),
-                          IconButton(
-                            icon: const Icon(Icons.attach_file),
-                            onPressed: () async {
-                              XFile? file = await uploadFile(context);
-                              if (file != null) {
-                                setState(() {
-                                  pickedFile = file;
-                                  fileName = file.name;
-                                  filePath = file.path;
-                                  checkFile = true;
-                                  setFileName();
-                                });
-                              }
-                            },
-                          ),
-                          TextField(
-                            controller: _fileNameController,
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 5.0),
-                              suffixIcon: _fileNameController.text.isNotEmpty
-                                  ? IconButton(
-                                      padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.0168),
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
+                              TypeAheadField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: _typeAheadEmployeeEditController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Choose an employee',
+                                    labelStyle: TextStyle(color: Colors.grey[350]),
+                                    border: const OutlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                    errorText: _validateEmployee
+                                        ? 'Please select a leave type'
+                                        : null,
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) {
+                                  return employeeItem
+                                      .where((leaveType) => leaveType
+                                      .toLowerCase()
+                                      .contains(pattern.toLowerCase()))
+                                      .toList();
+                                },
+                                itemBuilder: (context, String suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (String suggestion) {
+                                  setState(() {
+                                    _typeAheadEmployeeEditController.text =
+                                        suggestion;
+                                    editEmployeeType = suggestion;
+                                    selectedEmployeeId = employeeIdMap[suggestion];
+                                    getLeaveTypes(selectedEmployeeId);
+                                    _validateEmployee = false;
+                                  });
+                                },
+                                noItemsFoundBuilder: (context) => const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'No Leave Types Found',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                errorBuilder: (context, error) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Error: $error',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                hideOnEmpty: true,
+                                hideOnError: false,
+                                suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23), // Limit height
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Text(
+                                "Leave Type",
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              TypeAheadField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: _typeAheadEditController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Choose a Leave Type',
+                                    labelStyle: TextStyle(color: Colors.grey[350]),
+                                    border: const OutlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                    errorText: _validateLeaveType
+                                        ? 'Please select a leave type'
+                                        : null,
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) {
+                                  return leaveItem
+                                      .where((leaveType) => leaveType
+                                      .toLowerCase()
+                                      .contains(pattern.toLowerCase()))
+                                      .toList();
+                                },
+                                itemBuilder: (context, String suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (String suggestion) {
+                                  setState(() {
+                                    _typeAheadEditController.text = suggestion;
+                                    editLeaveType = suggestion;
+                                    selectedLeaveId = leaveItemsIdMap[suggestion];
+                                    _validateLeaveType = false;
+                                  });
+                                },
+                                noItemsFoundBuilder: (context) => const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'No Leave Types Found',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                errorBuilder: (context, error) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Error: $error',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                hideOnEmpty: true,
+                                hideOnError: false,
+                                suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23), // Limit height
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text("Start Date"),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: startDateInput,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 10.0),
+                                    hintText: "Select Date",
+                                  ),
+                                  onTap: () async {
+                                    final selectedDate = await showCustomDatePicker(
+                                        context, DateTime.now());
+                                    if (selectedDate != null) {
+                                      DateTime parsedDate = DateFormat('yyyy-MM-dd')
+                                          .parse(selectedDate);
+                                      setState(() {
+                                        startDate = parsedDate;
+                                        startDateInput.text =
+                                            DateFormat('yyyy-MM-dd')
+                                                .format(startDate!);
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text(" Start Date Breakdown "),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              DropdownSearch<String>(
+                                items: breakdownMaps.values.toList().cast<String>(),
+                                selectedItem:
+                                breakdownMaps[record['start_date_breakdown']],
+                                onChanged: (newValue) {
+                                  selectedStartDateValue = breakdownMaps.entries
+                                      .firstWhere(
+                                          (entry) => entry.value == newValue)
+                                      .key;
+                                  editStartDateBreakdown = selectedStartDateValue;
+                                },
+                                popupProps: PopupProps.menu(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23),
+                                  // Set your desired height
+                                  showSearchBox: false,
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text("End Date"),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: endDateInput,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 10.0),
+                                    hintText: "Select Date",
+                                  ),
+                                  onTap: () async {
+                                    final selectedDate = await showCustomDatePicker(
+                                        context, DateTime.now());
+                                    if (selectedDate != null) {
+                                      DateTime parsedDate = DateFormat('yyyy-MM-dd')
+                                          .parse(selectedDate);
+                                      setState(() {
+                                        endDate = parsedDate;
+                                        endDateInput.text = DateFormat('yyyy-MM-dd')
+                                            .format(endDate!);
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text("End Date Breakdown"),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              DropdownSearch<String>(
+                                items: breakdownMaps.values.toList().cast<String>(),
+                                selectedItem:
+                                breakdownMaps[record['end_date_breakdown']],
+                                onChanged: (newValue) {
+                                  selectedEndDateValue = breakdownMaps.entries
+                                      .firstWhere(
+                                          (entry) => entry.value == newValue)
+                                      .key;
+                                  editEndDateBreakdown = selectedEndDateValue;
+                                },
+                                popupProps: PopupProps.menu(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.23),
+                                  // Set your desired height
+                                  showSearchBox: false,
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                              const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text("Description"),
+                              ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: TextField(
+                                  controller: leaveDescription,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                    errorText: _validateDescription
+                                        ? 'Description cannot be empty'
+                                        : null,
+                                  ),
+                                  onChanged: (newValue) {
+                                    leaveDescription.text = newValue;
+                                    _validateDescription = newValue.isEmpty;
+                                  },
+                                ),
+                              ),
+                              if (currentLeaveRequests.isNotEmpty &&
+                                  currentLeaveRequests[0]['attachment'] != null)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Attachment',
+                                      style: TextStyle(color: Colors.grey.shade700),
+                                    ),
+                                    TextButton(
                                       onPressed: () {
-                                        setState(() {
-                                          _fileNameController.clear();
-                                        });
+                                        String pdfPath =
+                                        currentLeaveRequests[0]['attachment'];
+                                        if (pdfPath.endsWith('.png') ||
+                                            pdfPath.endsWith('.jpg') ||
+                                            pdfPath.endsWith('.jpeg') ||
+                                            pdfPath.endsWith('.gif')) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ImageViewer(imagePath: pdfPath),
+                                            ),
+                                          );
+                                        } else {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/attachment_view',
+                                            arguments: pdfPath,
+                                          );
+                                        }
                                       },
-                                    )
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                actions: <Widget>[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (isSaveClick == true) {
-                          isSaveClick = false;
-                          if (leaveDescription.text.isEmpty) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateDescription = true;
-                              Navigator.of(context).pop(true);
-                              _showUpdateDialog(
-                                  context, record, currentRequests, recordId);
-                            });
-                          } else {
-                            setState(() {
-                              isAction = true;
-                            });
-                            Map<String, dynamic> updatedDetails = {
-                              'id': record['id'],
-                              'start_date_breakdown': editStartDateBreakdown ??
-                                  record['start_date_breakdown'],
-                              'end_date_breakdown': editEndDateBreakdown ??
-                                  record['end_date_breakdown'],
-                              'status': record['status'],
-                              "employee_id": selectedEmployeeId ??
-                                  record['employee_id']['id'],
-                              "leave_type_id": selectedLeaveId ??
-                                  record['leave_type_id']['id'],
-                              'start_date': startDateInput.text,
-                              'end_date': endDateInput.text,
-                              'description': leaveDescription.text,
-                            };
-                            await updateRequest(
-                                updatedDetails, checkFile, fileName, filePath);
-                            setState(() {
-                              isAction = false;
-                            });
-                            if (_errorMessage == null ||
-                                _errorMessage!.isEmpty) {
-                              Navigator.of(context).pop();
-                              showUpdateAnimation();
-                            } else {
-                              Navigator.of(context).pop();
-                              _showUpdateDialog(
-                                  context, record, currentRequests, recordId);
-                            }
-                          }
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.red),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6.0),
+                                      child: const Text(
+                                        'View Attachment',
+                                        style: TextStyle(
+                                          decoration: TextDecoration.underline,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height * 0.01),
+                              IconButton(
+                                icon: const Icon(Icons.attach_file),
+                                onPressed: () async {
+                                  XFile? file = await uploadFile(context);
+                                  if (file != null) {
+                                    setState(() {
+                                      pickedFile = file;
+                                      fileName = file.name;
+                                      filePath = file.path;
+                                      checkFile = true;
+                                      setFileName();
+                                    });
+                                  }
+                                },
+                              ),
+                              TextField(
+                                controller: _fileNameController,
+                                readOnly: true,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 5.0),
+                                  suffixIcon: _fileNameController.text.isNotEmpty
+                                      ? IconButton(
+                                    padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(context)
+                                            .size
+                                            .height *
+                                            0.0168),
+                                    icon: const Icon(Icons.close,
+                                        color: Colors.red),
+                                    onPressed: () {
+                                      setState(() {
+                                        _fileNameController.clear();
+                                      });
+                                    },
+                                  )
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      child: const Text('Save',
-                          style: TextStyle(color: Colors.white)),
                     ),
+                    actions: <Widget>[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (isSaveClick == true) {
+                              isSaveClick = false;
+                              if (leaveDescription.text.isEmpty) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateDescription = true;
+                                  Navigator.of(context).pop(true);
+                                  _showUpdateDialog(
+                                      context, record, currentRequests, recordId);
+                                });
+                              } else {
+                                setState(() {
+                                  _validateAttachment = false;
+                                  isAction = true;
+                                });
+                                Map<String, dynamic> updatedDetails = {
+                                  'id': record['id'],
+                                  'start_date_breakdown': editStartDateBreakdown ??
+                                      record['start_date_breakdown'],
+                                  'end_date_breakdown': editEndDateBreakdown ??
+                                      record['end_date_breakdown'],
+                                  'status': record['status'],
+                                  "employee_id": selectedEmployeeId ??
+                                      record['employee_id']['id'],
+                                  "leave_type_id": selectedLeaveId ??
+                                      record['leave_type_id']['id'],
+                                  'start_date': startDateInput.text,
+                                  'end_date': endDateInput.text,
+                                  'description': leaveDescription.text,
+                                };
+                                await updateRequest(
+                                    updatedDetails, checkFile, fileName, filePath);
+                                setState(() {
+                                  isAction = false;
+                                });
+                                if (_errorMessage == null ||
+                                    _errorMessage!.isEmpty) {
+                                  Navigator.of(context).pop();
+                                  showUpdateAnimation();
+                                } else {
+                                  Navigator.of(context).pop();
+                                  _showUpdateDialog(
+                                      context, record, currentRequests, recordId);
+                                }
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                            shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                            ),
+                          ),
+                          child: const Text('Save',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (isAction)
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                 ],
-              ),
-              if (isAction)
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
-            ],
-          );
-        });
+              );
+            });
       },
     );
   }
 
-  /// Updates a leave request with the provided details and optional file attachment.
   Future<void> updateRequest(Map<String, dynamic> updatedDetails, checkFile,
       String fileName, String filePath) async {
     final prefs = await SharedPreferences.getInstance();
@@ -2056,14 +2015,14 @@ class _LeaveRequest extends State<LeaveRequest>
     request.fields['employee_id'] = updatedDetails['employee_id'].toString();
     request.fields['end_date_breakdown'] = updatedDetails['end_date_breakdown'];
     request.fields['start_date_breakdown'] =
-        updatedDetails['start_date_breakdown'];
+    updatedDetails['start_date_breakdown'];
     request.fields['start_date'] = updatedDetails['start_date'];
     request.fields['end_date'] = updatedDetails['end_date'];
     request.fields['leave_type_id'] =
         updatedDetails['leave_type_id'].toString();
     if (checkFile) {
       var attachment =
-          await http.MultipartFile.fromPath('attachment', filePath);
+      await http.MultipartFile.fromPath('attachment', filePath);
       request.files.add(attachment);
     }
     request.headers['Authorization'] = 'Bearer $token';
@@ -2105,7 +2064,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Filters all leave requests based on the provided search text.
   List<Map<String, dynamic>> filterAllRecords(String searchText) {
     if (searchText.isEmpty) {
       return myAllRequests;
@@ -2119,7 +2077,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Filters requested leave records based on the provided search text.
   List<Map<String, dynamic>> filterRequestedRecords(String searchText) {
     if (searchText.isEmpty) {
       return requestedRecords;
@@ -2133,7 +2090,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Filters approved leave records based on the provided search text.
   List<Map<String, dynamic>> filterApprovedRecords(String searchText) {
     if (searchText.isEmpty) {
       return approvedRecords;
@@ -2147,7 +2103,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Filters cancelled leave records based on the provided search text.
   List<Map<String, dynamic>> filterCancelledRecords(String searchText) {
     if (searchText.isEmpty) {
       return cancelledRecords;
@@ -2161,7 +2116,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Filters rejected leave records based on the provided search text.
   List<Map<String, dynamic>> filterRejectedRecords(String searchText) {
     if (searchText.isEmpty) {
       return rejectedRecords;
@@ -2175,7 +2129,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches all leave requests, paginated, and applies a search filter.
   Future<void> getAllLeaveRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2216,7 +2169,7 @@ class _LeaveRequest extends State<LeaveRequest>
     } else {
       currentPage = 1;
       var uri =
-          Uri.parse('$typedServerUrl/api/leave/request?search=$searchText');
+      Uri.parse('$typedServerUrl/api/leave/request?search=$searchText');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -2251,7 +2204,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches all leave requests from all pages and applies a search filter.
   Future<void> getAllPagesLeaveRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2271,7 +2223,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the count and details of requested leave records, paginated, with a search filter.
   Future<void> getRequestedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2345,7 +2296,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the count and details of approved leave records, paginated, with a search filter.
   Future<void> getApprovedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2420,7 +2370,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the count and details of cancelled leave records, paginated, with a search filter.
   Future<void> getCancelledCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2494,7 +2443,6 @@ class _LeaveRequest extends State<LeaveRequest>
     }
   }
 
-  /// Fetches the count and details of rejected leave records, paginated, with a search filter.
   Future<void> getRejectedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2617,6 +2565,7 @@ class _LeaveRequest extends State<LeaveRequest>
                           _validateStartDateBreakdown = false;
                           _validateEndDateBreakdown = false;
                           _validateDescription = false;
+                          _validateAttachment = false;
                           _validateDate = false;
                           _validateEndDate = false;
                           startDateSelect.clear();
@@ -2653,131 +2602,181 @@ class _LeaveRequest extends State<LeaveRequest>
             ? _buildLoadingWidget()
             : _buildLeaveRequestWidget(),
         drawer: Drawer(
-          child: ListView(
-            padding: const EdgeInsets.all(0),
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Image.asset('Assets/horilla-logo.png'),
-                  ),
-                ),
-              ),
-              permissionLeaveOverviewCheck
-                  ? ListTile(
+          child: FutureBuilder<void>(
+            future: checkPermissions(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Show shimmer effect while waiting
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error loading permissions.'));
+              } else {
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    permissionLeaveOverviewCheck
+                        ? ListTile(
                       title: const Text('Overview'),
                       onTap: () {
                         Navigator.pushNamed(context, '/leave_overview');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionMyLeaveRequestCheck
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionMyLeaveRequestCheck
+                        ? ListTile(
                       title: const Text('My Leave Request'),
                       onTap: () {
                         Navigator.pushNamed(context, '/my_leave_request');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionLeaveRequestCheck
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionLeaveRequestCheck
+                        ? ListTile(
                       title: const Text('Leave Request'),
                       onTap: () {
                         Navigator.pushNamed(context, '/leave_request');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionLeaveTypeCheck
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionLeaveTypeCheck
+                        ? ListTile(
                       title: const Text('Leave Type'),
                       onTap: () {
                         Navigator.pushNamed(context, '/leave_types');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionLeaveAllocationCheck
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionLeaveAllocationCheck
+                        ? ListTile(
                       title: const Text('Leave Allocation Request'),
                       onTap: () {
                         Navigator.pushNamed(
                             context, '/leave_allocation_request');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionLeaveAssignCheck
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionLeaveAssignCheck
+                        ? ListTile(
                       title: const Text('All Assigned Leave'),
                       onTap: () {
-                        Navigator.pushNamed(context, '/all_assigned_leave');
+                        Navigator.pushNamed(
+                            context, '/all_assigned_leave');
                       },
                     )
-                  : const SizedBox.shrink(),
-            ],
+                        : const SizedBox.shrink(),
+
+                  ],
+                );
+              }
+            },
           ),
         ),
         bottomNavigationBar: (bottomBarPages.length <= maxCount)
             ? AnimatedNotchBottomBar(
-                notchBottomBarController: _controller,
-                color: Colors.red,
-                showLabel: true,
-                notchColor: Colors.red,
-                kBottomRadius: 28.0,
-                kIconSize: 24.0,
-                removeMargins: false,
-                bottomBarWidth: MediaQuery.of(context).size.width * 1,
-                durationInMilliSeconds: 300,
-                bottomBarItems: const [
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-                onTap: (index) async {
-                  switch (index) {
-                    case 0:
-                      Navigator.pushNamed(context, '/home');
-                      break;
-                    case 1:
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                      break;
-                    case 2:
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                      break;
-                  }
-                },
-              )
+          /// Provide NotchBottomBarController
+          notchBottomBarController: _controller,
+          color: Colors.red,
+          showLabel: true,
+          notchColor: Colors.red,
+          kBottomRadius: 28.0,
+          kIconSize: 24.0,
+
+          /// restart app if you change removeMargins
+          removeMargins: false,
+          bottomBarWidth: MediaQuery.of(context).size.width * 1,
+          durationInMilliSeconds: 300,
+          bottomBarItems: const [
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+              // itemLabel: 'Home',
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+              // itemLabel: 'Profile',
+            ),
+          ],
+
+          onTap: (index) async {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/home');
+                break;
+              case 1:
+                Navigator.pushNamed(
+                    context, '/employee_checkin_checkout');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/employees_form',
+                    arguments: arguments);
+                break;
+            }
+          },
+        )
             : null,
       ),
     );
@@ -2812,7 +2811,7 @@ class _LeaveRequest extends State<LeaveRequest>
                   children: [
                     Expanded(
                       child: Card(
-                        margin: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.all(8), // Remove any margin
                         elevation: 0,
                         child: Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,
@@ -2917,7 +2916,7 @@ class _LeaveRequest extends State<LeaveRequest>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                           ),
                         ],
@@ -2947,7 +2946,7 @@ class _LeaveRequest extends State<LeaveRequest>
                 children: [
                   Expanded(
                     child: Card(
-                      margin: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(8), // Remove any margin
                       elevation: 0,
                       child: Container(
                         decoration: BoxDecoration(
@@ -2961,26 +2960,26 @@ class _LeaveRequest extends State<LeaveRequest>
                             }
                             _debounce =
                                 Timer(const Duration(milliseconds: 1000), () {
-                              setState(() {
-                                searchText = wardSearchValue;
-                                currentPage = 0;
-                                myAllRequests.clear();
-                                requestedRecords.clear();
-                                approvedRecords.clear();
-                                cancelledRecords.clear();
-                                rejectedRecords.clear();
-                                filteredRecords.clear();
-                                filteredRecordsRequested.clear();
-                                filteredRecordsApproved.clear();
-                                filteredRecordsCancelled.clear();
-                                filteredRecordsRejected.clear();
-                                getAllLeaveRequest();
-                                getRequestedCount();
-                                getApprovedCount();
-                                getCancelledCount();
-                                getRejectedCount();
-                              });
-                            });
+                                  setState(() {
+                                    searchText = wardSearchValue;
+                                    currentPage = 0;
+                                    myAllRequests.clear();
+                                    requestedRecords.clear();
+                                    approvedRecords.clear();
+                                    cancelledRecords.clear();
+                                    rejectedRecords.clear();
+                                    filteredRecords.clear();
+                                    filteredRecordsRequested.clear();
+                                    filteredRecordsApproved.clear();
+                                    filteredRecordsCancelled.clear();
+                                    filteredRecordsRejected.clear();
+                                    getAllLeaveRequest();
+                                    getRequestedCount();
+                                    getApprovedCount();
+                                    getCancelledCount();
+                                    getRejectedCount();
+                                  });
+                                });
                           },
                           decoration: InputDecoration(
                             hintText: 'Search',
@@ -3027,153 +3026,153 @@ class _LeaveRequest extends State<LeaveRequest>
                 children: [
                   allRequestsLength == 0
                       ? ListView(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.only(top: 40.0),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_month_outlined,
-                                      color: Colors.black,
-                                      size: 92,
-                                    ),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "There are no Leave request to display",
-                                      style: TextStyle(
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(top: 40.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                color: Colors.black,
+                                size: 92,
                               ),
-                            ),
-                          ],
-                        )
+                              SizedBox(height: 20),
+                              Text(
+                                "There are no Leave request to display",
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                       : buildTabContent(myAllRequests),
                   requestedLength == 0
                       ? ListView(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.only(top: 40.0),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_month_outlined,
-                                          color: Colors.black,
-                                          size: 92,
-                                        ),
-                                        SizedBox(height: 20),
-                                        Text(
-                                          "There are no Leave request to display",
-                                          style: TextStyle(
-                                              fontSize: 16.0,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(top: 40.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Column(
+                                mainAxisAlignment:
+                                MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_month_outlined,
+                                    color: Colors.black,
+                                    size: 92,
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "There are no Leave request to display",
+                                    style: TextStyle(
+                                        fontSize: 16.0,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                       : buildRequestedTabContent(requestedRecords),
                   approvedLength == 0
                       ? ListView(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.only(top: 40.0),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_month_outlined,
-                                      color: Colors.black,
-                                      size: 92,
-                                    ),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "There are no Leave request to display",
-                                      style: TextStyle(
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(top: 40.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                color: Colors.black,
+                                size: 92,
                               ),
-                            ),
-                          ],
-                        )
+                              SizedBox(height: 20),
+                              Text(
+                                "There are no Leave request to display",
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                       : buildApprovedTabContent(approvedRecords),
                   cancelledLength == 0
                       ? ListView(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.only(top: 40.0),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_month_outlined,
-                                      color: Colors.black,
-                                      size: 92,
-                                    ),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "There are no Leave request to display",
-                                      style: TextStyle(
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(top: 40.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                color: Colors.black,
+                                size: 92,
                               ),
-                            ),
-                          ],
-                        )
+                              SizedBox(height: 20),
+                              Text(
+                                "There are no Leave request to display",
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                       : buildCancelledTabContent(cancelledRecords),
                   rejectedLength == 0
                       ? ListView(
-                          children: const [
-                            Padding(
-                              padding: EdgeInsets.only(top: 40.0),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_month_outlined,
-                                      color: Colors.black,
-                                      size: 92,
-                                    ),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "There are no Leave request to display",
-                                      style: TextStyle(
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(top: 40.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                color: Colors.black,
+                                size: 92,
                               ),
-                            ),
-                          ],
-                        )
+                              SizedBox(height: 20),
+                              Text(
+                                "There are no Leave request to display",
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                       : buildRejectedTabContent(rejectedRecords),
                 ],
               ),
@@ -3566,13 +3565,13 @@ class _LeaveRequest extends State<LeaveRequest>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border:
-                                    Border.all(color: Colors.grey, width: 1.0),
+                                Border.all(color: Colors.grey, width: 1.0),
                               ),
                               child: Stack(
                                 children: [
                                   if (record['employee_id']
-                                              ['employee_profile'] !=
-                                          null &&
+                                  ['employee_profile'] !=
+                                      null &&
                                       record['employee_id']['employee_profile']
                                           .isNotEmpty)
                                     Positioned.fill(
@@ -3580,7 +3579,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                         child: Image.network(
                                           baseUrl +
                                               record['employee_id']
-                                                  ['employee_profile'],
+                                              ['employee_profile'],
                                           fit: BoxFit.cover,
                                           errorBuilder: (BuildContext context,
                                               Object exception,
@@ -3592,8 +3591,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                       ),
                                     ),
                                   if (record['employee_id']
-                                              ['employee_profile'] ==
-                                          null ||
+                                  ['employee_profile'] ==
+                                      null ||
                                       record['employee_id']['employee_profile']
                                           .isEmpty)
                                     Positioned.fill(
@@ -3610,7 +3609,7 @@ class _LeaveRequest extends State<LeaveRequest>
                             ),
                             SizedBox(
                                 width:
-                                    MediaQuery.of(context).size.width * 0.01),
+                                MediaQuery.of(context).size.width * 0.01),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -3753,6 +3752,11 @@ class _LeaveRequest extends State<LeaveRequest>
                             Container(
                               height: MediaQuery.of(context).size.height * 0.1,
                               width: MediaQuery.of(context).size.width * 0.6,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(4.0),
+                                color: Colors.transparent,
+                              ),
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.vertical,
                                 child: Text(
@@ -3773,7 +3777,7 @@ class _LeaveRequest extends State<LeaveRequest>
                               TextButton(
                                 onPressed: () {
                                   String pdfPath =
-                                      currentLeaveRequests[0]['attachment'];
+                                  currentLeaveRequests[0]['attachment'];
                                   if (pdfPath.endsWith('.png') ||
                                       pdfPath.endsWith('.jpg') ||
                                       pdfPath.endsWith('.jpeg') ||
@@ -3819,7 +3823,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                         backgroundColor: Colors.white,
                                         title: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                           children: [
                                             const Text(
                                               "Confirmation",
@@ -3837,8 +3841,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                         ),
                                         content: SizedBox(
                                           height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
+                                              .size
+                                              .height *
                                               0.1,
                                           child: const Center(
                                             child: Text(
@@ -3869,15 +3873,15 @@ class _LeaveRequest extends State<LeaveRequest>
                                               },
                                               style: ButtonStyle(
                                                 backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(Colors.red),
+                                                MaterialStateProperty.all<
+                                                    Color>(Colors.red),
                                                 shape:
-                                                    MaterialStateProperty.all<
-                                                        RoundedRectangleBorder>(
+                                                MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
                                                   RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
+                                                    BorderRadius.circular(
+                                                        8.0),
                                                   ),
                                                 ),
                                               ),
@@ -3911,105 +3915,106 @@ class _LeaveRequest extends State<LeaveRequest>
                                   record['status'] != 'cancelled',
                               child: ElevatedButton(
                                 onPressed: record['status'] == 'approved' ||
-                                        record['status'] == 'cancelled'
+                                    record['status'] == 'cancelled'
                                     ? null
                                     : () {
-                                        isSaveClick = true;
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              backgroundColor: Colors.white,
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Confirmation",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black),
-                                                  ),
-                                                  IconButton(
-                                                    icon:
-                                                        const Icon(Icons.close),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(true);
-                                                    },
-                                                  ),
-                                                ],
+                                  isSaveClick = true;
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor: Colors.white,
+                                        title: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Confirmation",
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            IconButton(
+                                              icon:
+                                              const Icon(Icons.close),
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(true);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        content: SizedBox(
+                                          height: MediaQuery.of(context)
+                                              .size
+                                              .height *
+                                              0.1,
+                                          child: const Center(
+                                            child: Text(
+                                              "Are you sure you want to Approve this Leave Request?",
+                                              style: TextStyle(
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 17,
                                               ),
-                                              content: SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.1,
-                                                child: const Center(
-                                                  child: Text(
-                                                    "Are you sure you want to Approve this Leave Request?",
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                      fontSize: 17,
-                                                    ),
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                if (isSaveClick == true) {
+                                                  isSaveClick = false;
+                                                  var approveId =
+                                                  record['id'];
+                                                  await approveRequest(
+                                                      approveId);
+                                                  Navigator.pop(context);
+                                                  Navigator.pop(context);
+                                                  showApproveAnimation();
+                                                }
+                                              },
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                MaterialStateProperty
+                                                    .all<Color>(
+                                                    Colors.green),
+                                                shape: MaterialStateProperty
+                                                    .all<
+                                                    RoundedRectangleBorder>(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius
+                                                        .circular(
+                                                        8.0),
                                                   ),
                                                 ),
                                               ),
-                                              actions: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (isSaveClick == true) {
-                                                        isSaveClick = false;
-                                                        var approveId =
-                                                            record['id'];
-                                                        await approveRequest(
-                                                            approveId);
-                                                        Navigator.pop(context);
-                                                        Navigator.pop(context);
-                                                        showApproveAnimation();
-                                                      }
-                                                    },
-                                                    style: ButtonStyle(
-                                                      backgroundColor:
-                                                          MaterialStateProperty
-                                                              .all<Color>(
-                                                                  Colors.green),
-                                                      shape: MaterialStateProperty
-                                                          .all<
-                                                              RoundedRectangleBorder>(
-                                                        RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                      "Continue",
-                                                      style: TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
+                                              child: const Text(
+                                                "Continue",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      record['status'] == 'approved' ||
-                                              record['status'] == 'cancelled' ||
-                                              record['status'] == 'rejected'
-                                          ? Colors.green[400]
-                                          : Colors.green,
+                                  backgroundColor: record['status'] ==
+                                      'approved' ||
+                                      record['status'] == 'cancelled' ||
+                                      record['status'] == 'rejected'
+                                      ? Colors.green[
+                                  400] // Dim color for disabled state
+                                      : Colors.green,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                   ),
@@ -4033,7 +4038,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                         backgroundColor: Colors.white,
                                         title: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                           children: [
                                             const Text(
                                               "Confirmation",
@@ -4051,8 +4056,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                         ),
                                         content: SizedBox(
                                           height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
+                                              .size
+                                              .height *
                                               0.1,
                                           child: const Center(
                                             child: Text(
@@ -4077,21 +4082,22 @@ class _LeaveRequest extends State<LeaveRequest>
                                                       rejectDescription.text;
                                                   await rejectRequest(
                                                       rejectId, description);
+                                                  // Navigator.pop(context);
                                                   Navigator.pop(context);
                                                   showRejectAnimation();
                                                 }
                                               },
                                               style: ButtonStyle(
                                                 backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(Colors.red),
+                                                MaterialStateProperty.all<
+                                                    Color>(Colors.red),
                                                 shape:
-                                                    MaterialStateProperty.all<
-                                                        RoundedRectangleBorder>(
+                                                MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
                                                   RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
+                                                    BorderRadius.circular(
+                                                        8.0),
                                                   ),
                                                 ),
                                               ),
@@ -4117,7 +4123,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Cancel',
+                                      'Reject',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(color: Colors.white),
                                     ),
@@ -4178,7 +4184,7 @@ class _LeaveRequest extends State<LeaveRequest>
                         child: Stack(
                           children: [
                             if (record['employee_id']['employee_profile'] !=
-                                    null &&
+                                null &&
                                 record['employee_id']['employee_profile']
                                     .isNotEmpty)
                               Positioned.fill(
@@ -4186,19 +4192,19 @@ class _LeaveRequest extends State<LeaveRequest>
                                   child: Image.network(
                                     baseUrl +
                                         record['employee_id']
-                                            ['employee_profile'],
+                                        ['employee_profile'],
                                     fit: BoxFit.cover,
                                     errorBuilder: (BuildContext context,
                                         Object exception,
                                         StackTrace? stackTrace) {
                                       return const Icon(Icons.person,
-                                          color: Colors.grey);
+                                          color: Colors.grey); // Fallback icon
                                     },
                                   ),
                                 ),
                               ),
                             if (record['employee_id']['employee_profile'] ==
-                                    null ||
+                                null ||
                                 record['employee_id']['employee_profile']
                                     .isEmpty)
                               Positioned.fill(
@@ -4222,6 +4228,7 @@ class _LeaveRequest extends State<LeaveRequest>
                               fullName ?? '',
                               style: const TextStyle(
                                   fontSize: 16.0, fontWeight: FontWeight.bold),
+                              // maxLines: 2,
                             ),
                             Text(
                               record['employee_id']['badge_id'] ?? '',
@@ -4241,15 +4248,15 @@ class _LeaveRequest extends State<LeaveRequest>
                             decoration: BoxDecoration(
                               borderRadius: record['status'] == 'requested'
                                   ? const BorderRadius.only(
-                                      topLeft: Radius.circular(15.0),
-                                      bottomLeft: Radius.circular(15.0),
-                                    )
+                                topLeft: Radius.circular(15.0),
+                                bottomLeft: Radius.circular(15.0),
+                              )
                                   : BorderRadius.circular(15.0),
                               color: Colors.blue[100],
                             ),
                             child: Padding(
                               padding:
-                                  const EdgeInsets.symmetric(vertical: 0.0),
+                              const EdgeInsets.symmetric(vertical: 0.0),
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.edit,
@@ -4288,7 +4295,7 @@ class _LeaveRequest extends State<LeaveRequest>
                             ),
                             child: Padding(
                               padding:
-                                  const EdgeInsets.symmetric(vertical: 0.0),
+                              const EdgeInsets.symmetric(vertical: 0.0),
                               child: Visibility(
                                 visible: record['status'] == 'requested',
                                 child: IconButton(
@@ -4306,7 +4313,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                           backgroundColor: Colors.white,
                                           title: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                             children: [
                                               const Text(
                                                 "Confirmation",
@@ -4329,8 +4336,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                           ),
                                           content: SizedBox(
                                             height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                                .size
+                                                .height *
                                                 0.1,
                                             child: const Center(
                                               child: Text(
@@ -4351,23 +4358,22 @@ class _LeaveRequest extends State<LeaveRequest>
                                                   if (isSaveClick == true) {
                                                     isSaveClick = false;
                                                     var leaveId = record['id'];
-                                                    await deleteRequest(
-                                                        leaveId);
+                                                    await deleteRequest(leaveId);
                                                     Navigator.pop(context);
                                                     showDeleteAnimation();
                                                   }
                                                 },
                                                 style: ButtonStyle(
                                                   backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(Colors.red),
+                                                  MaterialStateProperty.all<
+                                                      Color>(Colors.red),
                                                   shape:
-                                                      MaterialStateProperty.all<
-                                                          RoundedRectangleBorder>(
+                                                  MaterialStateProperty.all<
+                                                      RoundedRectangleBorder>(
                                                     RoundedRectangleBorder(
                                                       borderRadius:
-                                                          BorderRadius.circular(
-                                                              8.0),
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                     ),
                                                   ),
                                                 ),
@@ -4427,6 +4433,7 @@ class _LeaveRequest extends State<LeaveRequest>
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 5.0, vertical: 2.0),
+                        // Adjust padding as needed
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(9.0),
                           color: _getStateInfo(record['status'])
@@ -4462,7 +4469,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                       backgroundColor: Colors.white,
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                             "Confirmation",
@@ -4480,8 +4487,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                       ),
                                       content: SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
+                                        MediaQuery.of(context).size.height *
+                                            0.1,
                                         child: const Center(
                                           child: Text(
                                             "Are you sure you want to Reject this Leave Request?",
@@ -4511,14 +4518,14 @@ class _LeaveRequest extends State<LeaveRequest>
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(Colors.red),
+                                              MaterialStateProperty.all<
+                                                  Color>(Colors.red),
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  BorderRadius.circular(
+                                                      8.0),
                                                 ),
                                               ),
                                             ),
@@ -4541,9 +4548,9 @@ class _LeaveRequest extends State<LeaveRequest>
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.09,
+                                  MediaQuery.of(context).size.width * 0.09,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
                               child: const Text(
@@ -4560,94 +4567,93 @@ class _LeaveRequest extends State<LeaveRequest>
                                 record['status'] != 'cancelled',
                             child: ElevatedButton(
                               onPressed: record['status'] == 'approved' ||
-                                      record['status'] == 'cancelled'
+                                  record['status'] == 'cancelled'
                                   ? null
                                   : () {
-                                      isSaveClick = true;
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            backgroundColor: Colors.white,
-                                            title: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                const Text(
-                                                  "Confirmation",
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black),
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.close),
-                                                  onPressed: () {
-                                                    Navigator.of(context)
-                                                        .pop(true);
-                                                  },
-                                                ),
-                                              ],
+                                isSaveClick = true;
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: Colors.white,
+                                      title: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .spaceBetween,
+                                        children: [
+                                          const Text(
+                                            "Confirmation",
+                                            style: TextStyle(
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: Colors.black),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.close),
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .pop(true);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      content: SizedBox(
+                                        height: MediaQuery.of(context)
+                                            .size
+                                            .height *
+                                            0.1,
+                                        child: const Center(
+                                          child: Text(
+                                            "Are you sure you want to Approve this Leave Request?",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 17,
                                             ),
-                                            content: SizedBox(
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.1,
-                                              child: const Center(
-                                                child: Text(
-                                                  "Are you sure you want to Approve this Leave Request?",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
-                                                    fontSize: 17,
-                                                  ),
+                                          ),
+                                        ),
+                                      ),
+                                      actions: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              if (isSaveClick == true) {
+                                                isSaveClick = false;
+                                                var approveId =
+                                                record['id'];
+                                                await approveRequest(
+                                                    approveId);
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                              MaterialStateProperty
+                                                  .all<Color>(
+                                                  Colors.green),
+                                              shape: MaterialStateProperty
+                                                  .all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius
+                                                      .circular(8.0),
                                                 ),
                                               ),
                                             ),
-                                            actions: [
-                                              SizedBox(
-                                                width: double.infinity,
-                                                child: ElevatedButton(
-                                                  onPressed: () async {
-                                                    if (isSaveClick == true) {
-                                                      isSaveClick = false;
-                                                      var approveId =
-                                                          record['id'];
-                                                      await approveRequest(
-                                                          approveId);
-                                                      Navigator.pop(context);
-                                                      showApproveAnimation();
-                                                    }
-                                                  },
-                                                  style: ButtonStyle(
-                                                    backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all<Color>(
-                                                                Colors.green),
-                                                    shape: MaterialStateProperty
-                                                        .all<
-                                                            RoundedRectangleBorder>(
-                                                      RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8.0),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  child: const Text(
-                                                    "Continue",
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
+                                            child: const Text(
+                                              "Continue",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 shape: RoundedRectangleBorder(
@@ -4655,9 +4661,9 @@ class _LeaveRequest extends State<LeaveRequest>
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.09,
+                                  MediaQuery.of(context).size.width * 0.09,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
                               child: const Text(
@@ -4679,7 +4685,7 @@ class _LeaveRequest extends State<LeaveRequest>
                                       backgroundColor: Colors.white,
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                             "Confirmation",
@@ -4697,8 +4703,8 @@ class _LeaveRequest extends State<LeaveRequest>
                                       ),
                                       content: SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
+                                        MediaQuery.of(context).size.height *
+                                            0.1,
                                         child: const Center(
                                           child: Text(
                                             "Are you sure you want to Reject this Leave Request?",
@@ -4728,14 +4734,14 @@ class _LeaveRequest extends State<LeaveRequest>
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(Colors.red),
+                                              MaterialStateProperty.all<
+                                                  Color>(Colors.red),
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  BorderRadius.circular(
+                                                      8.0),
                                                 ),
                                               ),
                                             ),
@@ -4758,16 +4764,16 @@ class _LeaveRequest extends State<LeaveRequest>
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.09,
+                                  MediaQuery.of(context).size.width * 0.09,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Cancel',
+                                    'Reject',
                                     style: TextStyle(
                                         fontSize: 18.0, color: Colors.white),
                                   ),
@@ -4832,28 +4838,28 @@ class ImageViewer extends StatelessWidget {
       body: Center(
         child: isNetworkImage
             ? Image.network(
-                imagePath,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text(
-                    'Error loading image',
-                    style: TextStyle(color: Colors.red),
-                  );
-                },
-              )
+          imagePath,
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              'Error loading image',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+        )
             : fileExists
-                ? Image.file(
-                    File(imagePath),
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text(
-                        'Error loading image',
-                        style: TextStyle(color: Colors.red),
-                      );
-                    },
-                  )
-                : const Text(
-                    'Image not found',
-                    style: TextStyle(color: Colors.red),
-                  ),
+            ? Image.file(
+          File(imagePath),
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              'Error loading image',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+        )
+            : const Text(
+          'Image not found',
+          style: TextStyle(color: Colors.red),
+        ),
       ),
     );
   }

@@ -13,8 +13,8 @@ class WorkTypeRequestPage extends StatefulWidget {
 
   const WorkTypeRequestPage(
       {super.key,
-      required this.selectedEmployerId,
-      required this.selectedEmployeeFullName});
+        required this.selectedEmployerId,
+        required this.selectedEmployeeFullName});
 
   @override
   _WorkTypeRequestPageState createState() => _WorkTypeRequestPageState();
@@ -32,13 +32,13 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
   final _pageController = PageController(initialPage: 0);
   final _controller = NotchBottomBarController(index: -1);
   final TextEditingController _typeAheadEditController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadEditWorkTypeController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeCreateAheadController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadCreateWorkTypeController =
-      TextEditingController();
+  TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController createRequestedDateController = TextEditingController();
   TextEditingController createRequestedTillController = TextEditingController();
@@ -52,6 +52,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
   List employeeIdValue = [''];
   List<String> workTypeItems = [];
   List<Map<String, dynamic>> allEmployeeList = [];
+  bool permissionCheck = false;
   bool approveRejectCheck = false;
   bool _validateWorkType = false;
   bool _validateRequestedDate = false;
@@ -63,7 +64,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
   bool isSaveClick = true;
   int requestsCount = 0;
   int maxCount = 5;
-  int? empId;
   int currentPage = 1;
   int? selectedEmployerId;
   String searchText = '';
@@ -89,12 +89,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
   Map<String, String> workTypeIdMap = {};
   bool isCreateButtonVisible = true;
 
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
     prefetchData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      permissionChecks();
       approveRejectChecks();
       getWorkTypeRequest();
       getEmployeeDetails();
@@ -106,13 +108,11 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Simulates a loading process with a delay of 5 seconds.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {});
   }
 
-  /// Creates visibility for the create button based on the employee ID.
   Future<void> createVisibility() async {
     final prefs = await SharedPreferences.getInstance();
     var employeeId = prefs.getInt("employee_id");
@@ -120,14 +120,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
       setState(() {
         isCreateButtonVisible = true;
       });
-    } else {
+    }
+    else {
       setState(() {
         isCreateButtonVisible = false;
       });
     }
   }
 
-  /// Retrieves the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -136,24 +136,36 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Performs an approval/rejection check for work type requests.
-  void approveRejectChecks() async {
+  void permissionChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    empId = int.parse(widget.selectedEmployerId);
-
-    var uri = Uri.parse(
-        '$typedServerUrl/api/base/worktype-request-approve-permission-check?employee_id=$empId');
+    var uri =
+    Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
     });
     if (response.statusCode == 200) {
+      permissionCheck = true;
+    }
+  }
+  void approveRejectChecks() async {
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString("token");
+    var typedServerUrl = prefs.getString("typed_url");
+    var employeeId = prefs.getInt("employee_id");
+    var uri =
+    Uri.parse('$typedServerUrl/api/base/worktype-request-approve-permission-check/$employeeId');
+    var response = await http.get(uri, headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
+    print('ttttttttttttttttt');
+    print(response.statusCode);
+    print(response.body);
+    if (response.statusCode == 200) {
       approveRejectCheck = true;
-    } else {
-      approveRejectCheck = false;
     }
   }
 
@@ -165,23 +177,22 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     super.dispose();
   }
 
-  /// Listens for scroll events to load more work type requests when the end is reached.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getWorkTypeRequest();
     }
   }
 
+  /// widget list
   final List<Widget> bottomBarPages = [
     const Home(),
     const Overview(),
     const User(),
   ];
 
-  /// Prefetches employee data from the server and stores it in shared preferences.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -195,47 +206,41 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Retrieves work type requests based on the employee ID and search text.
   Future<void> getWorkTypeRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-    var empId = prefs.getInt("employee_id");
-
     employeeId = widget.selectedEmployerId;
     setState(() {
       hasNoRecords = false;
     });
-
-    if (empId == employeeId) {
+    if (currentPage != 0) {
       var uri = Uri.parse(
           '$typedServerUrl/api/base/individual-worktype-request?employee_id=$employeeId&page=$currentPage&search=$searchText');
       var response = await http.get(uri, headers: {
@@ -274,9 +279,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
         });
       }
     } else {
+      currentPage = 1;
       var uri = Uri.parse(
           '$typedServerUrl/api/base/worktype-requests?employee_id=$employeeId&search=$searchText');
-
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -314,8 +319,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
       }
     }
   }
-
-  /// Fetches a list of employees and stores them in shared preferences.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -327,14 +330,24 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
     });
+
+    print('Request URI: $uri');
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
     if (response.statusCode == 200) {
       setState(() {
+        // Clear previous data
         employeeItems.clear();
         employeeIdMap.clear();
+
+        // Decode response
         var employees = jsonDecode(response.body)['results'];
+
+        // Filter to display only the current logged-in user's details
         var currentUserDetails = employees.firstWhere(
-          (employee) => employee['id'] == employeeId,
-          orElse: () => null,
+              (employee) => employee['id'] == employeeId,
+          orElse: () => null, // Handle case if no match is found
         );
 
         if (currentUserDetails != null) {
@@ -343,21 +356,57 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
           final fullName = (firstName.isEmpty ? '' : firstName) +
               (lastName.isEmpty ? '' : ' $lastName');
           String employeeIdStr = "${currentUserDetails['id']}";
+
+          // Add current user's details
           employeeItems.add(fullName);
           employeeIdMap[fullName] = employeeIdStr;
+
+          // Set allEmployeeList with only the logged-in user details
           allEmployeeList = [currentUserDetails];
         }
       });
     }
   }
 
-  /// Adds overtime hours for the selected employee.
+  // Future<void> getEmployees() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   var token = prefs.getString("token");
+  //   var typedServerUrl = prefs.getString("typed_url");
+  //   var employeeId = prefs.getInt("employee_id");
+  //     var uri = Uri.parse(
+  //         '$typedServerUrl/api/employee/employee-selector?employee_id=$employeeId');
+  //     var response = await http.get(uri, headers: {
+  //       "Content-Type": "application/json",
+  //       "Authorization": "Bearer $token",
+  //     });
+  //     print('eeeeeeeeeeeeeeeeeeeeeeeee $uri');
+  //     print(response.statusCode);
+  //     print(response.body);
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         for (var employee in jsonDecode(response.body)['results']) {
+  //           final firstName = employee['employee_first_name'] ?? '';
+  //           final lastName = employee['employee_last_name'] ?? '';
+  //           final fullName = (firstName.isEmpty ? '' : firstName) +
+  //               (lastName.isEmpty ? '' : ' $lastName');
+  //           String employeeId = "${employee['id']}";
+  //           employeeItems.add(fullName);
+  //           employeeIdMap[fullName] = employeeId;
+  //         }
+  //         allEmployeeList = List<Map<String, dynamic>>.from(
+  //           jsonDecode(response.body)['results'],
+  //         );
+  //       });
+  //     }
+  //
+  // }
+
   Future<void> addOvertime() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/attendance-hour-account/');
+    Uri.parse('$typedServerUrl/api/attendance/attendance-hour-account/');
     var response = await http.post(
       uri,
       headers: {
@@ -382,7 +431,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Rejects a work type request based on the updated details.
   Future<void> rejectWorkTypeRequest(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -396,14 +444,15 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
       "Authorization": "Bearer $token",
     });
     if (response.statusCode == 200) {
-      isSaveClick = false;
-      await getWorkTypeRequest();
+      setState(() async {
+        isSaveClick = false;
+        await getWorkTypeRequest();
+      });
     } else {
       isSaveClick = true;
     }
   }
 
-  /// The function updates the work type request and refreshes the list of requests.
   Future<void> approveWorkTypeRequest(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -426,7 +475,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Shows a custom date picker dialog to select a date.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -452,7 +500,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     return null;
   }
 
-  /// Fetches the list of work types from the server.
   Future<void> getWorkType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -475,7 +522,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Displays an approval success animation in a dialog.
   void showApproveAnimation() {
     String jsonContent = '''
 {
@@ -497,8 +543,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Approved Successfully",
@@ -520,7 +565,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Displays an update success animation in a dialog.
   void showUpdateAnimation() {
     String jsonContent = '''
 {
@@ -542,8 +586,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Updated Successfully",
@@ -565,7 +608,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Displays a rejection success animation in a dialog.
   void showRejectAnimation() {
     String jsonContent = '''
 {
@@ -587,8 +629,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Rejected Successfully",
@@ -610,7 +651,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Fetches the details of an employee from the server.
   Future<void> getEmployeeDetails() async {
     employeeId = widget.selectedEmployerId;
     final prefs = await SharedPreferences.getInstance();
@@ -628,7 +668,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Updates an existing work type request on the server.
   Future<void> updateWorkTypeRequest(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -687,7 +726,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Creates a new work type request on the server.
   Future<void> createWorkTypeRequest(
       Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -744,7 +782,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// The function shows an animation indicating that a work type has been created successfully.
   void showCreateAnimation() {
     String jsonContent = '''
 {
@@ -766,8 +803,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Created Successfully",
@@ -789,7 +825,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Displays a deletion success animation in a dialog.
   void showDeleteAnimation() {
     String jsonContent = '''
 {
@@ -811,8 +846,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Deleted Successfully",
@@ -834,7 +868,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// Displays an edit success animation in a dialog.
   void showEditAnimation() {
     String jsonContent = '''
 {
@@ -856,8 +889,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "WorkType Updated Successfully",
@@ -879,13 +911,12 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     });
   }
 
-  /// This function sends a DELETE request to the server with the necessary authorization
   Future<void> deleteWorkTypeRequest(int requestId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var uri =
-        Uri.parse('$typedServerUrl/api/base/worktype-requests/$requestId/');
+    Uri.parse('$typedServerUrl/api/base/worktype-requests/$requestId/');
     var response = await http.delete(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -913,15 +944,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     }
   }
 
-  /// Displays a dialog for editing a work type request.
   void _showEditWorkTypeRequest(
       BuildContext context, Map<String, dynamic> record) {
     TextEditingController editRequestedDateController =
-        TextEditingController(text: record['requested_date'] ?? '');
+    TextEditingController(text: record['requested_date'] ?? '');
     TextEditingController editRequestedTillController =
-        TextEditingController(text: record['requested_till'] ?? '');
+    TextEditingController(text: record['requested_till'] ?? '');
     TextEditingController descriptionSelect =
-        TextEditingController(text: record['description'] ?? '');
+    TextEditingController(text: record['description'] ?? '');
     _typeAheadEditController.text = (record['employee_first_name'] ?? "") +
         " " +
         (record['employee_last_name'] ?? "");
@@ -971,14 +1001,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadEditController,
@@ -993,8 +1023,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1006,7 +1036,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               setState(() {
                                 editEmployee = suggestion;
                                 selectedEditEmployeeId =
-                                    employeeIdMap[suggestion];
+                                employeeIdMap[suggestion];
                               });
                               _typeAheadEditController.text = suggestion;
                             },
@@ -1029,20 +1059,20 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Requesting Work Type',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadEditWorkTypeController,
@@ -1057,8 +1087,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsCallback: (pattern) {
                               return workTypeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1070,7 +1100,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               setState(() {
                                 editWorkType = suggestion;
                                 selectedEditWorkType =
-                                    workTypeIdMap[suggestion];
+                                workTypeIdMap[suggestion];
                                 _validateWorkType = false;
                               });
                               _typeAheadEditWorkTypeController.text =
@@ -1095,20 +1125,20 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Requested Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: editRequestedDateController,
@@ -1134,19 +1164,19 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                   ? 'Please Choose a Requested date'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Requested Till",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: editRequestedTillController,
@@ -1172,19 +1202,19 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                   ? 'Please Choose a Requested Till'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Description',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: descriptionSelect,
                             decoration: InputDecoration(
@@ -1192,7 +1222,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDescription
                                   ? 'Description cannot be empty'
                                   : null,
@@ -1232,9 +1262,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                 "work_type_id": selectedEditWorkType ??
                                     record['work_type_id'].toString(),
                                 "requested_date":
-                                    editRequestedDateController.text,
+                                editRequestedTillController.text,
                                 "requested_till":
-                                    editRequestedTillController.text,
+                                editRequestedTillController.text,
                                 "description": descriptionSelect.text,
                               };
                               await updateWorkTypeRequest(updatedDetails);
@@ -1249,9 +1279,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                   MaterialPageRoute(
                                       builder: (context) => WorkTypeRequestPage(
                                           selectedEmployerId:
-                                              widget.selectedEmployerId,
+                                          widget.selectedEmployerId,
                                           selectedEmployeeFullName:
-                                              widget.selectedEmployeeFullName)),
+                                          widget.selectedEmployeeFullName)),
                                 );
                                 showUpdateAnimation();
                               } else {
@@ -1263,9 +1293,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -1289,7 +1319,6 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     );
   }
 
-  /// Displays a dialog to create a work type request for the selected employee.
   void _showCreateWorkTypeRequest(
       BuildContext context, selectedEmployeeFullName, selectedEmployerId) {
     _typeCreateAheadController.text = widget.selectedEmployeeFullName;
@@ -1338,14 +1367,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeCreateAheadController,
@@ -1360,8 +1389,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1374,7 +1403,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                 _typeCreateAheadController.text = suggestion;
                                 createEmployee = suggestion;
                                 selectedCreateEmployeeId =
-                                    employeeIdMap[suggestion];
+                                employeeIdMap[suggestion];
                               });
                             },
                             noItemsFoundBuilder: (context) => const Padding(
@@ -1396,20 +1425,20 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Requesting Work Type',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadCreateWorkTypeController,
@@ -1427,8 +1456,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsCallback: (pattern) {
                               return workTypeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1442,7 +1471,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                     suggestion;
                                 createWorkType = suggestion;
                                 selectedCreateWorkType =
-                                    workTypeIdMap[suggestion];
+                                workTypeIdMap[suggestion];
                                 _validateWorkType = false;
                               });
                             },
@@ -1465,20 +1494,20 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Requested Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: createRequestedDateController,
@@ -1501,7 +1530,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               labelText: 'Choose Requested date',
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateRequestedDate
                                   ? 'Please select a Requested date'
                                   : null,
@@ -1510,14 +1539,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Requested Till",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: createRequestedTillController,
@@ -1540,7 +1569,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               labelText: 'Choose Requested Till',
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateRequestedTill
                                   ? 'Please select a Requested Till'
                                   : null,
@@ -1549,14 +1578,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Description',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: descriptionSelect,
                             decoration: InputDecoration(
@@ -1564,7 +1593,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDescription
                                   ? 'Description cannot be empty'
                                   : null,
@@ -1650,9 +1679,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                     widget.selectedEmployerId,
                                 "work_type_id": selectedCreateWorkType,
                                 "requested_date":
-                                    createRequestedDateController.text,
+                                createRequestedDateController.text,
                                 "requested_till":
-                                    createRequestedTillController.text,
+                                createRequestedTillController.text,
                                 "description": descriptionSelect.text,
                               };
                               await createWorkTypeRequest(createdDetails);
@@ -1667,9 +1696,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                   MaterialPageRoute(
                                       builder: (context) => WorkTypeRequestPage(
                                           selectedEmployerId:
-                                              widget.selectedEmployerId,
+                                          widget.selectedEmployerId,
                                           selectedEmployeeFullName:
-                                              widget.selectedEmployeeFullName)),
+                                          widget.selectedEmployeeFullName)),
                                 );
                                 showCreateAnimation();
                               } else {
@@ -1684,9 +1713,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -1748,12 +1777,12 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                             child: Stack(
                               children: [
                                 if (employeeDetails['employee_profile'] !=
-                                        null &&
+                                    null &&
                                     employeeDetails['employee_profile']
                                         .isNotEmpty)
                                   Positioned.fill(
@@ -1772,7 +1801,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                     ),
                                   ),
                                 if (employeeDetails['employee_profile'] ==
-                                        null ||
+                                    null ||
                                     employeeDetails['employee_profile'].isEmpty)
                                   Positioned.fill(
                                     child: Container(
@@ -1794,9 +1823,9 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               children: [
                                 Text(
                                   employeeDetails['employee_first_name'] +
-                                          " " +
-                                          employeeDetails[
-                                              'employee_last_name'] ??
+                                      " " +
+                                      employeeDetails[
+                                      'employee_last_name'] ??
                                       '',
                                   style: const TextStyle(
                                       fontSize: 16.0,
@@ -1845,9 +1874,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             'Work Type',
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          Text('${record['work_type_name'] ?? 'None'}'),
+                          Flexible(
+                            child: Text(
+                              '${record['work_type_name'] ?? 'None'}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1855,10 +1892,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             'Previous work type',
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          Text(
-                              '${record['previous_work_type_name'] ?? 'None'}'),
+                          Flexible(
+                            child: Text(
+                              '${record['previous_work_type_name'] ?? 'None'}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1866,9 +1910,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             'Requested date',
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          Text('${record['requested_date'] ?? 'None'}'),
+                          Flexible(
+                            child: Text(
+                              '${record['requested_date'] ?? 'None'}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1876,9 +1928,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             'Requested till',
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          Text('${record['requested_till'] ?? 'None'}'),
+                          Flexible(
+                            child: Text(
+                              '${record['requested_till'] ?? 'None'}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1886,7 +1946,14 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             'Is permanent work type',
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          Text(record['is_permanent_work_type'] ? 'Yes' : 'No'),
+                          Flexible(
+                            child: Text(
+                              record['is_permanent_work_type'] ? 'Yes' : 'No',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(
@@ -1905,125 +1972,118 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.3,
                             child: ElevatedButton(
-                              onPressed: !approveRejectCheck
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        isSaveClick = true;
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Confirmation",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black),
-                                                  ),
-                                                  IconButton(
-                                                    icon:
-                                                        const Icon(Icons.close),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                              content: SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.1,
-                                                child: const Center(
-                                                  child: Text(
-                                                    "Are you sure you want to Reject this WorkType Request?",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                        fontSize: 17),
-                                                  ),
-                                                ),
-                                              ),
-                                              actions: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (isSaveClick == true) {
-                                                        isSaveClick = false;
-                                                        setState(() {
-                                                          rejectWorkTypeRequest(
-                                                              record);
-                                                          Navigator.pop(
-                                                              context);
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                                builder: (context) => WorkTypeRequestPage(
-                                                                    selectedEmployerId:
-                                                                        widget
-                                                                            .selectedEmployerId,
-                                                                    selectedEmployeeFullName:
-                                                                        widget
-                                                                            .selectedEmployeeFullName)),
-                                                          );
-                                                          showRejectAnimation();
-                                                        });
-                                                      }
-                                                    },
-                                                    style: ButtonStyle(
-                                                      backgroundColor:
-                                                          MaterialStateProperty
-                                                              .all<Color>(
-                                                                  Colors.red),
-                                                      shape: MaterialStateProperty
-                                                          .all<
-                                                              RoundedRectangleBorder>(
-                                                        RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                        "Continue",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white)),
+                              onPressed: () {
+                                setState(() {
+                                  isSaveClick = true;
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Confirmation",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        content: SizedBox(
+                                          height: MediaQuery.of(context)
+                                              .size
+                                              .height *
+                                              0.1,
+                                          child: const Center(
+                                            child: Text(
+                                              "Are you sure you want to Reject this WorkType Request?",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                  fontSize: 17),
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                if (isSaveClick == true) {
+                                                  isSaveClick = false;
+                                                  setState(() {
+                                                    rejectWorkTypeRequest(
+                                                        record);
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              WorkTypeRequestPage(
+                                                                  selectedEmployerId:
+                                                                  widget
+                                                                      .selectedEmployerId,
+                                                                  selectedEmployeeFullName:
+                                                                  widget
+                                                                      .selectedEmployeeFullName)),
+                                                    );
+                                                    showRejectAnimation();
+                                                  });
+                                                }
+                                              },
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                MaterialStateProperty.all<
+                                                    Color>(Colors.red),
+                                                shape:
+                                                MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                        8.0),
                                                   ),
                                                 ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      });
+                                              ),
+                                              child: const Text("Continue",
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                            ),
+                                          ),
+                                        ],
+                                      );
                                     },
+                                  );
+                                });
+                              },
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
-                                backgroundColor: !approveRejectCheck
-                                    ? Colors.grey
-                                    : Colors.red,
+                                backgroundColor: Colors.red,
                               ),
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Reject',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      'Reject',
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2035,123 +2095,119 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.3,
                             child: ElevatedButton(
-                              onPressed: !approveRejectCheck
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Confirmation",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black),
-                                                  ),
-                                                  IconButton(
-                                                    icon:
-                                                        const Icon(Icons.close),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                              content: SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.1,
-                                                child: const Center(
-                                                  child: Text(
-                                                    "Are you sure you want to Approve this WorkType Request?",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                        fontSize: 17),
-                                                  ),
-                                                ),
-                                              ),
-                                              actions: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (isSaveClick == true) {
-                                                        isSaveClick = false;
-                                                        approveWorkTypeRequest(
-                                                            record);
-                                                        Navigator.pop(context);
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder: (context) => WorkTypeRequestPage(
-                                                                  selectedEmployerId:
-                                                                      widget
-                                                                          .selectedEmployerId,
-                                                                  selectedEmployeeFullName:
-                                                                      widget
-                                                                          .selectedEmployeeFullName)),
-                                                        );
-                                                        showApproveAnimation();
-                                                      }
-                                                    },
-                                                    style: ButtonStyle(
-                                                      backgroundColor:
-                                                          MaterialStateProperty
-                                                              .all<Color>(
-                                                                  Colors.green),
-                                                      shape: MaterialStateProperty
-                                                          .all<
-                                                              RoundedRectangleBorder>(
-                                                        RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                        "Continue",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white)),
+                              onPressed: () async {
+                                setState(() {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Confirmation",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        content: SizedBox(
+                                          height: MediaQuery.of(context)
+                                              .size
+                                              .height *
+                                              0.1,
+                                          child: const Center(
+                                            child: Text(
+                                              "Are you sure you want to Approve this WorkType Request?",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                  fontSize: 17),
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                if (isSaveClick == true) {
+                                                  isSaveClick = false;
+                                                  approveWorkTypeRequest(
+                                                      record);
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            WorkTypeRequestPage(
+                                                                selectedEmployerId:
+                                                                widget
+                                                                    .selectedEmployerId,
+                                                                selectedEmployeeFullName:
+                                                                widget
+                                                                    .selectedEmployeeFullName)),
+                                                  );
+                                                  showApproveAnimation();
+                                                }
+                                              },
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                MaterialStateProperty.all<
+                                                    Color>(Colors.green),
+                                                shape:
+                                                MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                        8.0),
                                                   ),
                                                 ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      });
+                                              ),
+                                              child: const Text("Continue",
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                            ),
+                                          ),
+                                        ],
+                                      );
                                     },
+                                  );
+                                });
+                              },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: !approveRejectCheck
-                                    ? Colors.grey
-                                    : Colors.green,
+                                backgroundColor: Colors.green,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.05,
+                                  MediaQuery.of(context).size.width * 0.05,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
-                              child: const Text(
-                                'Approve',
-                                style: TextStyle(
-                                    fontSize: 13, color: Colors.white),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Approve',
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -2172,7 +2228,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                       return AlertDialog(
                                         title: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                           children: [
                                             const Text(
                                               "Confirmation",
@@ -2190,8 +2246,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                         ),
                                         content: SizedBox(
                                           height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
+                                              .size
+                                              .height *
                                               0.1,
                                           child: const Center(
                                             child: Text(
@@ -2221,11 +2277,11 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                           builder: (context) =>
                                                               WorkTypeRequestPage(
                                                                   selectedEmployerId:
-                                                                      widget
-                                                                          .selectedEmployerId,
+                                                                  widget
+                                                                      .selectedEmployerId,
                                                                   selectedEmployeeFullName:
-                                                                      widget
-                                                                          .selectedEmployeeFullName)),
+                                                                  widget
+                                                                      .selectedEmployeeFullName)),
                                                     );
                                                     showRejectAnimation();
                                                   });
@@ -2233,15 +2289,15 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                               },
                                               style: ButtonStyle(
                                                 backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(Colors.red),
+                                                MaterialStateProperty.all<
+                                                    Color>(Colors.red),
                                                 shape:
-                                                    MaterialStateProperty.all<
-                                                        RoundedRectangleBorder>(
+                                                MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
                                                   RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
+                                                    BorderRadius.circular(
+                                                        8.0),
                                                   ),
                                                 ),
                                               ),
@@ -2262,10 +2318,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                               ),
-                              child: const Text(
-                                'Reject',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white),
+                              child: const Flexible(
+                                child: Text(
+                                  'Reject',
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -2283,11 +2346,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Approve',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      'Approve',
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2311,11 +2380,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Reject',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      'Reject',
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2335,11 +2410,17 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Approve',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      'Approve',
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2467,7 +2548,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.edit,
@@ -2494,7 +2575,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.delete,
@@ -2511,8 +2592,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                             backgroundColor: Colors.white,
                                             title: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                              MainAxisAlignment
+                                                  .spaceBetween,
                                               children: [
                                                 const Text(
                                                   "Confirmation",
@@ -2532,8 +2613,8 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                             ),
                                             content: SizedBox(
                                               height: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
+                                                  .size
+                                                  .height *
                                                   0.1,
                                               child: const Center(
                                                 child: Text(
@@ -2554,31 +2635,33 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                     if (isSaveClick == true) {
                                                       isSaveClick = false;
                                                       var workTypeRequestId =
-                                                          record['id'];
+                                                      record['id'];
                                                       await deleteWorkTypeRequest(
                                                           workTypeRequestId);
                                                       Navigator.pop(context);
                                                       setState(() {
                                                         requests.removeWhere(
-                                                            (record) =>
-                                                                record['id'] ==
+                                                                (record) =>
+                                                            record['id'] ==
                                                                 workTypeRequestId);
                                                       });
+
+                                                      // Show delete animation
                                                       showDeleteAnimation();
                                                     }
                                                   },
                                                   style: ButtonStyle(
                                                     backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all<Color>(
-                                                                Colors.red),
+                                                    MaterialStateProperty
+                                                        .all<Color>(
+                                                        Colors.red),
                                                     shape: MaterialStateProperty
                                                         .all<
-                                                            RoundedRectangleBorder>(
+                                                        RoundedRectangleBorder>(
                                                       RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(8.0),
+                                                        BorderRadius
+                                                            .circular(8.0),
                                                       ),
                                                     ),
                                                   ),
@@ -2600,7 +2683,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                             ),
                             SizedBox(
                                 width:
-                                    MediaQuery.of(context).size.width * 0.005),
+                                MediaQuery.of(context).size.width * 0.005),
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.grey[200],
@@ -2620,32 +2703,62 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                           children: [
                             Text('Requested Work Type',
                                 style: TextStyle(color: Colors.grey.shade700)),
-                            Text('${record['work_type_name'] ?? 'None'}'),
+                            Flexible(
+                              child: Text(
+                                '${record['work_type_name'] ?? 'None'}',
+                                textAlign: TextAlign.end,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                           ],
                         ),
+                        SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Previous/Current Work Type',
                                 style: TextStyle(color: Colors.grey.shade700)),
-                            Text(
-                                '${record['previous_work_type_name'] ?? 'None'}'),
+                            Flexible(
+                              child: Text(
+                                '${record['previous_work_type_name'] ?? 'None'}',
+                                textAlign: TextAlign.end,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                           ],
                         ),
+                        SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Requested Date',
                                 style: TextStyle(color: Colors.grey.shade700)),
-                            Text('${record['requested_date'] ?? 'None'}'),
+                            Flexible(
+                              child: Text(
+                                '${record['requested_date'] ?? 'None'}',
+                                textAlign: TextAlign.end,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                           ],
                         ),
+                        SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Requested Till',
                                 style: TextStyle(color: Colors.grey.shade700)),
-                            Text('${record['requested_till'] ?? 'None'}'),
+                            Flexible(
+                              child: Text(
+                                '${record['requested_till'] ?? 'None'}',
+                                textAlign: TextAlign.end,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                           ],
                         ),
                         Padding(
@@ -2660,137 +2773,132 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                       width: MediaQuery.of(context).size.width *
                                           0.3,
                                       child: ElevatedButton(
-                                        onPressed: !approveRejectCheck
-                                            ? null
-                                            : () async {
-                                                setState(() {
-                                                  isSaveClick = true;
-                                                  showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                          children: [
-                                                            const Text(
-                                                              "Confirmation",
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .black),
-                                                            ),
-                                                            IconButton(
-                                                              icon: const Icon(
-                                                                  Icons.close),
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        content: SizedBox(
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.1,
-                                                          child: const Center(
-                                                            child: Text(
-                                                              "Are you sure you want to Reject this WorkType Request?",
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .black,
-                                                                  fontSize: 17),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        actions: [
-                                                          SizedBox(
-                                                            width:
-                                                                double.infinity,
-                                                            child:
-                                                                ElevatedButton(
-                                                              onPressed: () {
-                                                                if (isSaveClick ==
-                                                                    true) {
-                                                                  setState(() {
-                                                                    isSaveClick =
-                                                                        false;
-                                                                    rejectWorkTypeRequest(
-                                                                        record);
-                                                                    Navigator.pop(
-                                                                        context);
-                                                                    Navigator
-                                                                        .push(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                          builder: (context) => WorkTypeRequestPage(
-                                                                              selectedEmployerId: widget.selectedEmployerId,
-                                                                              selectedEmployeeFullName: widget.selectedEmployeeFullName)),
-                                                                    );
-                                                                    showRejectAnimation();
-                                                                  });
-                                                                }
-                                                              },
-                                                              style:
-                                                                  ButtonStyle(
-                                                                backgroundColor:
-                                                                    MaterialStateProperty.all<
-                                                                            Color>(
-                                                                        Colors
-                                                                            .red),
-                                                                shape: MaterialStateProperty
-                                                                    .all<
-                                                                        RoundedRectangleBorder>(
-                                                                  RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            8.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              child: const Text(
-                                                                  "Continue",
-                                                                  style: TextStyle(
-                                                                      color: Colors
-                                                                          .white)),
+                                        onPressed: () {
+                                          setState(() {
+                                            isSaveClick = true;
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Row(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      const Text(
+                                                        "Confirmation",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                            FontWeight.bold,
+                                                            color:
+                                                            Colors.black),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                            Icons.close),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  content: SizedBox(
+                                                    height:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.1,
+                                                    child: const Center(
+                                                      child: Text(
+                                                        "Are you sure you want to Reject this WorkType Request?",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                            FontWeight.bold,
+                                                            color: Colors.black,
+                                                            fontSize: 17),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  actions: [
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          if (isSaveClick ==
+                                                              true) {
+                                                            setState(() {
+                                                              isSaveClick =
+                                                              false;
+                                                              rejectWorkTypeRequest(
+                                                                  record);
+                                                              Navigator.pop(
+                                                                  context);
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                    builder: (context) => WorkTypeRequestPage(
+                                                                        selectedEmployerId:
+                                                                        widget
+                                                                            .selectedEmployerId,
+                                                                        selectedEmployeeFullName:
+                                                                        widget.selectedEmployeeFullName)),
+                                                              );
+                                                              showRejectAnimation();
+                                                            });
+                                                          }
+                                                        },
+                                                        style: ButtonStyle(
+                                                          backgroundColor:
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                              Colors
+                                                                  .red),
+                                                          shape: MaterialStateProperty
+                                                              .all<
+                                                              RoundedRectangleBorder>(
+                                                            RoundedRectangleBorder(
+                                                              borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                  8.0),
                                                             ),
                                                           ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                });
+                                                        ),
+                                                        child: const Text(
+                                                            "Continue",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white)),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
                                               },
+                                            );
+                                          });
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
-                                          backgroundColor: !approveRejectCheck
-                                              ? Colors.grey
-                                              : Colors.red,
+                                          backgroundColor: Colors.red,
                                         ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              'Reject',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: const [
+                                            Flexible(
+                                              child: Text(
+                                                'Reject',
+                                                textAlign: TextAlign.center,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -2801,138 +2909,135 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                       width: MediaQuery.of(context).size.width *
                                           0.3,
                                       child: ElevatedButton(
-                                        onPressed: !approveRejectCheck
-                                            ? null
-                                            : () async {
-                                                setState(() {
-                                                  isSaveClick = true;
-                                                  showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                          children: [
-                                                            const Text(
-                                                              "Confirmation",
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .black),
-                                                            ),
-                                                            IconButton(
-                                                              icon: const Icon(
-                                                                  Icons.close),
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        content: SizedBox(
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.1,
-                                                          child: const Center(
-                                                            child: Text(
-                                                              "Are you sure you want to Approve this WorkType Request?",
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .black,
-                                                                  fontSize: 17),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        actions: [
-                                                          SizedBox(
-                                                            width:
-                                                                double.infinity,
-                                                            child:
-                                                                ElevatedButton(
-                                                              onPressed:
-                                                                  () async {
-                                                                if (isSaveClick ==
-                                                                    true) {
-                                                                  setState(() {
-                                                                    isSaveClick =
-                                                                        false;
-                                                                    approveWorkTypeRequest(
-                                                                        record);
-                                                                    Navigator.pop(
-                                                                        context);
-                                                                    Navigator
-                                                                        .push(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                          builder: (context) => WorkTypeRequestPage(
-                                                                              selectedEmployerId: widget.selectedEmployerId,
-                                                                              selectedEmployeeFullName: widget.selectedEmployeeFullName)),
-                                                                    );
-                                                                    showApproveAnimation();
-                                                                  });
-                                                                }
-                                                              },
-                                                              style:
-                                                                  ButtonStyle(
-                                                                backgroundColor:
-                                                                    MaterialStateProperty.all<
-                                                                            Color>(
-                                                                        Colors
-                                                                            .green),
-                                                                shape: MaterialStateProperty
-                                                                    .all<
-                                                                        RoundedRectangleBorder>(
-                                                                  RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            8.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              child: const Text(
-                                                                  "Continue",
-                                                                  style: TextStyle(
-                                                                      color: Colors
-                                                                          .white)),
+                                        onPressed: () async {
+                                          setState(() {
+                                            isSaveClick = true;
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Row(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      const Text(
+                                                        "Confirmation",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                            FontWeight.bold,
+                                                            color:
+                                                            Colors.black),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                            Icons.close),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  content: SizedBox(
+                                                    height:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.1,
+                                                    child: const Center(
+                                                      child: Text(
+                                                        "Are you sure you want to Approve this WorkType Request?",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                            FontWeight.bold,
+                                                            color: Colors.black,
+                                                            fontSize: 17),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  actions: [
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: ElevatedButton(
+                                                        onPressed: () async {
+                                                          if (isSaveClick ==
+                                                              true) {
+                                                            setState(() {
+                                                              isSaveClick =
+                                                              false;
+                                                              approveWorkTypeRequest(
+                                                                  record);
+                                                              Navigator.pop(
+                                                                  context);
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                    builder: (context) => WorkTypeRequestPage(
+                                                                        selectedEmployerId:
+                                                                        widget
+                                                                            .selectedEmployerId,
+                                                                        selectedEmployeeFullName:
+                                                                        widget.selectedEmployeeFullName)),
+                                                              );
+                                                              showApproveAnimation();
+                                                            });
+                                                          }
+                                                        },
+                                                        style: ButtonStyle(
+                                                          backgroundColor:
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                              Colors
+                                                                  .green),
+                                                          shape: MaterialStateProperty
+                                                              .all<
+                                                              RoundedRectangleBorder>(
+                                                            RoundedRectangleBorder(
+                                                              borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                  8.0),
                                                             ),
                                                           ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                });
+                                                        ),
+                                                        child: const Text(
+                                                            "Continue",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white)),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
                                               },
+                                            );
+                                          });
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
-                                          backgroundColor: !approveRejectCheck
-                                              ? Colors.grey
-                                              : Colors.green,
+                                          backgroundColor: Colors.green,
                                         ),
                                         child: const Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              'Approve',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 13),
+                                            const Flexible(
+                                              child: Flexible(
+                                                child: Text(
+                                                  'Approve',
+                                                  textAlign: TextAlign.center,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -2956,16 +3061,16 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                 return AlertDialog(
                                                   title: Row(
                                                     mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                     children: [
                                                       const Text(
                                                         "Confirmation",
                                                         style: TextStyle(
                                                             fontWeight:
-                                                                FontWeight.bold,
+                                                            FontWeight.bold,
                                                             color:
-                                                                Colors.black),
+                                                            Colors.black),
                                                       ),
                                                       IconButton(
                                                         icon: const Icon(
@@ -2979,16 +3084,16 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                   ),
                                                   content: SizedBox(
                                                     height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.1,
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.1,
                                                     child: const Center(
                                                       child: Text(
                                                         "Are you sure you want to Reject this WorkType Request?",
                                                         style: TextStyle(
                                                             fontWeight:
-                                                                FontWeight.bold,
+                                                            FontWeight.bold,
                                                             color: Colors.black,
                                                             fontSize: 17),
                                                       ),
@@ -3003,7 +3108,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                               true) {
                                                             setState(() {
                                                               isSaveClick =
-                                                                  false;
+                                                              false;
                                                               rejectWorkTypeRequest(
                                                                   record);
                                                               Navigator.pop(
@@ -3013,10 +3118,10 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                                 MaterialPageRoute(
                                                                     builder: (context) => WorkTypeRequestPage(
                                                                         selectedEmployerId:
-                                                                            widget
-                                                                                .selectedEmployerId,
+                                                                        widget
+                                                                            .selectedEmployerId,
                                                                         selectedEmployeeFullName:
-                                                                            widget.selectedEmployeeFullName)),
+                                                                        widget.selectedEmployeeFullName)),
                                                               );
                                                               showRejectAnimation();
                                                             });
@@ -3024,18 +3129,18 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                                         },
                                                         style: ButtonStyle(
                                                           backgroundColor:
-                                                              MaterialStateProperty
-                                                                  .all<Color>(
-                                                                      Colors
-                                                                          .red),
+                                                          MaterialStateProperty
+                                                              .all<Color>(
+                                                              Colors
+                                                                  .red),
                                                           shape: MaterialStateProperty
                                                               .all<
-                                                                  RoundedRectangleBorder>(
+                                                              RoundedRectangleBorder>(
                                                             RoundedRectangleBorder(
                                                               borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8.0),
+                                                              BorderRadius
+                                                                  .circular(
+                                                                  8.0),
                                                             ),
                                                           ),
                                                         ),
@@ -3055,20 +3160,25 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
                                           backgroundColor: Colors.red,
                                         ),
                                         child: const Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              'Reject',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
+                                            Flexible(
+                                              child: Text(
+                                                'Reject',
+                                                textAlign: TextAlign.center,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -3083,21 +3193,26 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
                                           backgroundColor:
-                                              Colors.green.withOpacity(0.5),
+                                          Colors.green.withOpacity(0.5),
                                         ),
                                         child: const Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              'Approve',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
+                                            Flexible(
+                                              child: Text(
+                                                'Approve',
+                                                textAlign: TextAlign.center,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -3116,21 +3231,26 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
                                           backgroundColor:
-                                              Colors.red.withOpacity(0.5),
+                                          Colors.red.withOpacity(0.5),
                                         ),
                                         child: const Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              'Reject',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
+                                            Flexible(
+                                              child: Text(
+                                                'Reject',
+                                                textAlign: TextAlign.center,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -3145,21 +3265,26 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
                                           backgroundColor:
-                                              Colors.green.withOpacity(0.5),
+                                          Colors.green.withOpacity(0.5),
                                         ),
                                         child: const Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              'Approve',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
+                                            Flexible(
+                                              child: Text(
+                                                'Approve',
+                                                textAlign: TextAlign.center,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -3182,137 +3307,132 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
     );
   }
 
-  Future<bool> _onWillPop() async {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/employees_form',
-      (route) => false,
-      arguments: arguments,
-    );
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
+    final bool permissionCheck =
+    ModalRoute.of(context)?.settings.arguments != null
+        ? ModalRoute.of(context)!.settings.arguments as bool
+        : false;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      key: _scaffoldKey,
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        key: _scaffoldKey,
-        appBar: AppBar(
-          forceMaterialTransparency: true,
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          title: const Text('Work Type Request',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: Visibility(
-                      visible: isCreateButtonVisible,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _typeAheadCreateWorkTypeController.clear();
-                            createRequestedDateController.clear();
-                            createRequestedTillController.clear();
-                            descriptionSelect.clear();
-                            _validateWorkType = false;
-                            _validateRequestedDate = false;
-                            _validateRequestedTill = false;
-                            _validateDescription = false;
-                            _errorMessage = null;
-                            isAction = false;
-                          });
-                          _showCreateWorkTypeRequest(context,
-                              selectedEmployeeFullName, createEmployee);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(75, 50),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4.0),
-                            side: const BorderSide(color: Colors.red),
-                          ),
+        title: const Text('Work Type Request',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // if (permissionCheck)
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: Visibility(
+                    visible: isCreateButtonVisible,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _typeAheadCreateWorkTypeController.clear();
+                          createRequestedDateController.clear();
+                          createRequestedTillController.clear();
+                          descriptionSelect.clear();
+                          _validateWorkType = false;
+                          _validateRequestedDate = false;
+                          _validateRequestedTill = false;
+                          _validateDescription = false;
+                          _errorMessage = null;
+                          isAction = false;
+                        });
+                        _showCreateWorkTypeRequest(
+                            context, selectedEmployeeFullName, createEmployee);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(75, 50),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4.0),
+                          side: const BorderSide(color: Colors.red),
                         ),
-                        child: const Text('CREATE',
-                            style: TextStyle(color: Colors.red)),
                       ),
+                      child: const Text('CREATE',
+                          style: TextStyle(color: Colors.red)),
                     ),
                   ),
-                ],
-              ),
+                ),
+                // ),
+              ],
             ),
-          ],
-        ),
-        body: isLoading ? _buildLoadingWidget() : _buildEmployeeDetailsWidget(),
-        bottomNavigationBar: (bottomBarPages.length <= maxCount)
-            ? AnimatedNotchBottomBar(
-                notchBottomBarController: _controller,
-                color: Colors.red,
-                showLabel: true,
-                notchColor: Colors.red,
-                kBottomRadius: 28.0,
-                kIconSize: 24.0,
-                removeMargins: false,
-                bottomBarWidth: MediaQuery.of(context).size.width * 1,
-                durationInMilliSeconds: 300,
-                bottomBarItems: const [
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-                onTap: (index) async {
-                  switch (index) {
-                    case 0:
-                      Navigator.pushNamed(context, '/home');
-                      break;
-                    case 1:
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                      break;
-                    case 2:
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                      break;
-                  }
-                },
-              )
-            : null,
+          ),
+        ],
       ),
+      body: isLoading ? _buildLoadingWidget() : _buildEmployeeDetailsWidget(),
+      bottomNavigationBar: (bottomBarPages.length <= maxCount)
+          ? AnimatedNotchBottomBar(
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
+          : null,
     );
   }
 
@@ -3364,7 +3484,7 @@ class _WorkTypeRequestPageState extends State<WorkTypeRequestPage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border:
-                                    Border.all(color: Colors.grey, width: 1.0),
+                                Border.all(color: Colors.grey, width: 1.0),
                               ),
                             ),
                           ],

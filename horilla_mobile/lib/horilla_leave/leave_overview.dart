@@ -37,9 +37,6 @@ class _LeaveOverview extends State<LeaveOverview>
   bool permissionLeaveOverviewCheck = false;
   bool permissionMyLeaveRequestCheck = false;
   bool permissionLeaveAllocationCheck = false;
-  bool hasPermissionLeaveTypeCheckExecuted = false;
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void dispose() {
@@ -55,24 +52,13 @@ class _LeaveOverview extends State<LeaveOverview>
     prefetchData();
   }
 
-  /// Checks various permissions for leave operations.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
-    if (!hasPermissionLeaveTypeCheckExecuted) {
-      await permissionLeaveTypeChecks();
-      hasPermissionLeaveTypeCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
+    await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      await permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Checks permission for leave overview and updates state accordingly.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -92,7 +78,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Checks permission for leave types and updates state accordingly.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -112,7 +97,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Checks permission for leave requests and updates state accordingly.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -132,7 +116,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Checks permission for leave assignments and updates state accordingly.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -152,7 +135,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Retrieves the base URL from shared preferences and updates the state.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -161,7 +143,6 @@ class _LeaveOverview extends State<LeaveOverview>
     });
   }
 
-  /// Prefetches employee data and updates the local arguments map.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -176,35 +157,32 @@ class _LeaveOverview extends State<LeaveOverview>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Navigates to the next page of requests if available.
   void _nextPage() {
     setState(() {
       if ((_currentPage + 1) * _itemsPerPage < requests.length) {
@@ -213,7 +191,6 @@ class _LeaveOverview extends State<LeaveOverview>
     });
   }
 
-  /// Navigates to the previous page of requests if possible.
   void _previousPage() {
     setState(() {
       if (_currentPage > 0) {
@@ -222,7 +199,6 @@ class _LeaveOverview extends State<LeaveOverview>
     });
   }
 
-  /// Gets the current page of offline employees from the requests list.
   List<Map<String, dynamic>> getCurrentPageOfflineEmployees() {
     final int startIndex = _currentPage * _itemsPerPage;
     final int endIndex = startIndex + _itemsPerPage;
@@ -233,14 +209,12 @@ class _LeaveOverview extends State<LeaveOverview>
         startIndex, endIndex < requests.length ? endIndex : requests.length);
   }
 
-  /// Handles connection errors by updating the loading state.
   void handleConnectionError() {
     setState(() {
       isLoading = false;
     });
   }
 
-  /// Retrieves all leave requests and populates approved and requested lists.
   Future<void> getAllLeaveRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -252,7 +226,6 @@ class _LeaveOverview extends State<LeaveOverview>
     await fetchAllRequests(typedServerUrl, token);
   }
 
-  /// Fetches approved leave requests for a specific date and updates the state.
   Future<void> fetchApprovedRequests(String serverUrl, String token,
       String formattedDate, DateTime now) async {
     var uri = Uri.parse(
@@ -277,7 +250,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Fetches all leave requests and updates the state with categorized counts.
   Future<void> fetchAllRequests(String serverUrl, String token) async {
     var uri = Uri.parse('$serverUrl/api/leave/request');
     var response = await http.get(uri, headers: {
@@ -308,7 +280,6 @@ class _LeaveOverview extends State<LeaveOverview>
     }
   }
 
-  /// Gets the current page of leave requests from the requests list.
   List<Map<String, dynamic>> getCurrentPageRequests() {
     final int startIndex = _currentPage * _itemsPerPage;
     final int endIndex = startIndex + _itemsPerPage;
@@ -349,206 +320,202 @@ class _LeaveOverview extends State<LeaveOverview>
         child: isLoading
             ? _buildShimmerEffect(context)
             : ListView(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const LeaveRequest()),
-                      );
-                    },
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth >= 600) {
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: _buildGridItem(context, 'NEW\nREQUEST\n',
-                                    ' $newRequestsCount'),
-                              ),
-                              const SizedBox(width: 10.0),
-                              Expanded(
-                                child: _buildGridItem(
-                                    context,
-                                    'APPROVED\nREQUEST\n',
-                                    ' $newApprovedRequestsCount'),
-                              ),
-                            ],
-                          );
-                        } else {
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 5.0,
-                              mainAxisSpacing: 5.0,
-                            ),
-                            itemCount: 2,
-                            itemBuilder: (context, index) {
-                              String headerText = index == 0
-                                  ? 'NEW\nREQUEST\n'
-                                  : 'APPROVED\nREQUEST\n';
-                              String valueText = index == 0
-                                  ? ' $newRequestsCount'
-                                  : ' $newApprovedRequestsCount';
-                              return _buildGridItem(
-                                  context, headerText, valueText);
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 7,
-                          offset: const Offset(0, 3),
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LeaveRequest()),
+                );
+              },
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth >= 600) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildGridItem(context, 'NEW\nREQUEST\n',
+                              ' $newRequestsCount'),
+                        ),
+                        const SizedBox(width: 10.0),
+                        Expanded(
+                          child: _buildGridItem(
+                              context,
+                              'APPROVED\nREQUEST\n',
+                              ' $newApprovedRequestsCount'),
                         ),
                       ],
-                    ),
-                    child: Column(
+                    );
+                  } else {
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 5.0,
+                        mainAxisSpacing: 5.0,
+                      ),
+                      itemCount: 2,
+                      itemBuilder: (context, index) {
+                        String headerText = index == 0
+                            ? 'NEW\nREQUEST\n'
+                            : 'APPROVED\nREQUEST\n';
+                        String valueText = index == 0
+                            ? ' $newRequestsCount'
+                            : ' $newApprovedRequestsCount';
+                        return _buildGridItem(
+                            context, headerText, valueText);
+                      },
+                    );
+                  }
+                },
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 7,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal:
+                        MediaQuery.of(context).size.width * 0.04),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Flexible(
+                          child: Text(
+                            'On Leave',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize:
+                              MediaQuery.of(context).size.width *
+                                  0.06,
+                            ),
+                          ),
+                        ),
                         Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  MediaQuery.of(context).size.width * 0.04),
+                          padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).size.height *
+                                  0.02),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Flexible(
-                                child: Text(
-                                  'On Leave',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.06,
-                                  ),
+                              Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 40,
+                                  maxHeight: 40,
                                 ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    top: MediaQuery.of(context).size.height *
-                                        0.02),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 40,
-                                        maxHeight: 40,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.shade400
-                                                .withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 1,
-                                            offset: const Offset(0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.arrow_left),
-                                        onPressed: _previousPage,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16.0),
-                                    Container(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 40,
-                                        maxHeight: 40,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.shade400
-                                                .withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 1,
-                                            offset: const Offset(0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.arrow_right),
-                                        onPressed: _nextPage,
-                                      ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.shade400
+                                          .withOpacity(0.2),
+                                      spreadRadius: 1,
+                                      blurRadius: 1,
+                                      offset: const Offset(0, 0),
                                     ),
                                   ],
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.arrow_left),
+                                  onPressed: _previousPage,
+                                ),
+                              ),
+                              const SizedBox(width: 16.0),
+                              Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 40,
+                                  maxHeight: 40,
+                                ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.shade400
+                                          .withOpacity(0.2),
+                                      spreadRadius: 1,
+                                      blurRadius: 1,
+                                      offset: const Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.arrow_right),
+                                  onPressed: _nextPage,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.35,
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: currentPageRequests.isEmpty
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              'No Leave request for today',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: currentPageRequests.length,
-                                        itemBuilder: (context, index) {
-                                          final record =
-                                              currentPageRequests[index];
-                                          final fullName = record['employee_id']
-                                              ['full_name'];
-                                          final badgeId =
-                                              record['employee_id']['badge_id'];
-                                          final image = record['employee_id']
-                                              ['employee_profile'];
-                                          final requestId = record['id'];
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: currentPageRequests.isEmpty
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  'No Leave request for today',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                              : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: currentPageRequests.length,
+                            itemBuilder: (context, index) {
+                              final record =
+                              currentPageRequests[index];
+                              final fullName = record['employee_id']
+                              ['full_name'];
+                              final badgeId =
+                              record['employee_id']['badge_id'];
+                              final image = record['employee_id']
+                              ['employee_profile'];
+                              final requestId = record['id'];
 
-                                          if (fullName != null) {
-                                            return buildLeaveTodayTile(
-                                              context,
-                                              fullName,
-                                              image ?? "",
-                                              baseUrl,
-                                              badgeId ?? "",
-                                              requestId,
-                                            );
-                                          } else {
-                                            return Container();
-                                          }
-                                        },
-                                      ),
-                              ),
-                            ],
+                              if (fullName != null) {
+                                return buildLeaveTodayTile(
+                                  context,
+                                  fullName,
+                                  image ?? "",
+                                  baseUrl,
+                                  badgeId ?? "",
+                                  requestId,
+                                );
+                              } else {
+                                return Container();
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -556,6 +523,9 @@ class _LeaveOverview extends State<LeaveOverview>
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
       ),
       drawer: Drawer(
         child: FutureBuilder<void>(
@@ -607,53 +577,59 @@ class _LeaveOverview extends State<LeaveOverview>
                   ),
                   permissionLeaveOverviewCheck
                       ? ListTile(
-                          title: const Text('Overview'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_overview');
-                          },
-                        )
+                    title: const Text('Overview'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_overview');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionMyLeaveRequestCheck
                       ? ListTile(
-                          title: const Text('My Leave Request'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/my_leave_request');
-                          },
-                        )
+                    title: const Text('My Leave Request'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/my_leave_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveRequestCheck
                       ? ListTile(
-                          title: const Text('Leave Request'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_request');
-                          },
-                        )
+                    title: const Text('Leave Request'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveTypeCheck
                       ? ListTile(
-                          title: const Text('Leave Type'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_types');
-                          },
-                        )
+                    title: const Text('Leave Type'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_types');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveAllocationCheck
                       ? ListTile(
-                          title: const Text('Leave Allocation Request'),
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, '/leave_allocation_request');
-                          },
-                        )
+                    title: const Text('Leave Allocation Request'),
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, '/leave_allocation_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveAssignCheck
                       ? ListTile(
-                          title: const Text('All Assigned Leave'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/all_assigned_leave');
-                          },
-                        )
+                    title: const Text('All Assigned Leave'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/all_assigned_leave');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                 ],
               );
             }
@@ -663,62 +639,66 @@ class _LeaveOverview extends State<LeaveOverview>
       extendBody: true,
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }

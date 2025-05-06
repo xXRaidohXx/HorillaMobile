@@ -49,10 +49,9 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     getBaseUrl();
   }
 
-  /// Handles the scroll event to detect when the user reaches the end of the list.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getEmployeeDetails();
@@ -67,7 +66,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     super.dispose();
   }
 
-  /// Fetches the base URL from shared preferences and updates the state with the value.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -76,7 +74,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     });
   }
 
-  /// Prefetches employee data from the server and stores it in shared preferences.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -91,35 +88,32 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Simulates loading by delaying for 2 seconds before setting loading state to false.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
@@ -127,7 +121,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     });
   }
 
-  /// Fetches employee details from the server, appending the results to the existing list.
   Future<void> getEmployeeDetails() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -169,7 +162,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     }
   }
 
-  /// Filters the employee records based on the search text, matching names and job positions.
   List<dynamic> filterRecords(String searchText) {
     List<dynamic> allRecords = requests;
     List<dynamic> filteredRecords = allRecords.where((record) {
@@ -184,13 +176,11 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     return filteredRecords;
   }
 
-  /// Generates a color based on the employee's job position.
   Color _getColorForPosition(String position) {
     int hashCode = position.hashCode;
     return Color((hashCode & 0xFFFFFF).toInt()).withOpacity(1.0);
   }
 
-  /// Builds a list item widget for displaying employee details.
   Widget buildListItem(Map<String, dynamic> record, baseUrl) {
     String position = record['job_position_name'] ?? 'Unknown';
     Color positionColor = _getColorForPosition(position);
@@ -201,9 +191,9 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
             final args = ModalRoute.of(context)?.settings.arguments;
             Navigator.pushNamed(context, '/employees_form', arguments: {
               'employee_id': record['id'],
-              'employee_name': (record['employee_first_name'] ?? '') +
+              'employee_name': record['employee_first_name'] +
                   ' ' +
-                  (record['employee_last_name'] ?? ''),
+                  record['employee_last_name'],
               'permission_check': args,
             });
           },
@@ -295,13 +285,13 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          // Adjust padding as needed
           child: Divider(height: 1.0, color: Colors.grey[300]),
         ),
       ],
     );
   }
 
-  /// Loads more employee data by incrementing the page and calling `getEmployeeDetails()`.
   Future<void> loadMoreData() async {
     currentPage++;
     await getEmployeeDetails();
@@ -323,276 +313,280 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
           Center(
             child: isLoading
                 ? Column(
+              children: [
+                const SizedBox(height: 5),
+                Padding(
+                  padding: MediaQuery.of(context).size.width > 600
+                      ? const EdgeInsets.all(20.0)
+                      : const EdgeInsets.all(15.0),
+                  child: Row(
                     children: [
-                      const SizedBox(height: 5),
-                      Padding(
-                        padding: MediaQuery.of(context).size.width > 600
-                            ? const EdgeInsets.all(20.0)
-                            : const EdgeInsets.all(15.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Card(
-                                margin: const EdgeInsets.all(8),
-                                elevation: 0,
-                                child: Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: TextField(
-                                      enabled: false,
-                                      decoration: InputDecoration(
-                                        hintText: 'Loading...',
-                                        hintStyle: TextStyle(
-                                            color: Colors.grey.shade400,
-                                            fontSize: 14),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        prefixIcon: Transform.scale(
-                                          scale: 0.8,
-                                          child: Icon(Icons.search,
-                                              color: Colors.grey.shade400),
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                vertical: 12.0,
-                                                horizontal: 4.0),
-                                        filled: true,
-                                        fillColor: Colors.grey[100],
-                                      ),
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade400),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ListView.builder(
-                            itemCount: 6,
-                            itemBuilder: (context, index) {
-                              return Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: ListTile(
-                                    title: Container(
-                                      height: 20,
-                                      color: Colors.grey[300],
-                                    ),
-                                    subtitle: Container(
-                                      height: 16,
-                                      color: Colors.grey[200],
-                                      margin: const EdgeInsets.only(top: 8.0),
-                                    ),
+                        child: Card(
+                          margin: const EdgeInsets.all(8),
+                          elevation: 0,
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: TextField(
+                                enabled: false,
+                                decoration: InputDecoration(
+                                  hintText: 'Loading...',
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 14),
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(8.0),
+                                    borderSide: BorderSide.none,
                                   ),
+                                  prefixIcon: Transform.scale(
+                                    scale: 0.8,
+                                    child: Icon(Icons.search,
+                                        color: Colors.grey.shade400),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(
+                                      vertical: 12.0,
+                                      horizontal: 4.0),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      const SizedBox(height: 5),
-                      Padding(
-                        padding: MediaQuery.of(context).size.width > 600
-                            ? const EdgeInsets.all(20.0)
-                            : const EdgeInsets.all(15.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Card(
-                                margin: const EdgeInsets.all(8),
-                                elevation: 0,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.grey.shade50),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: TextField(
-                                    onChanged: (employeeSearchValue) {
-                                      setState(() {
-                                        searchText = employeeSearchValue;
-                                        getEmployeeDetails();
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search',
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      prefixIcon: Transform.scale(
-                                        scale: 0.8,
-                                        child: Icon(Icons.search,
-                                            color: Colors.blueGrey.shade300),
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 12.0, horizontal: 4.0),
-                                      hintStyle: TextStyle(
-                                          color: Colors.blueGrey.shade300,
-                                          fontSize: 14),
-                                      filled: true,
-                                      fillColor: Colors.grey[100],
-                                    ),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade400),
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                      if (requestsCount == 0)
-                        const Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search,
-                                  color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  "There are no employee records to display",
-                                  style: TextStyle(
-                                    fontSize: 16.0,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              itemCount: searchText.isEmpty
-                                  ? requests.length + (hasMore ? 1 : 0)
-                                  : filteredRecords.length,
-                              itemBuilder: (context, index) {
-                                if (index == requests.length &&
-                                    searchText.isEmpty &&
-                                    hasMore) {
-                                  return Column(
-                                    children: [
-                                      if (nextPage != '')
-                                        Center(
-                                          child: ListTile(
-                                            title: LoadingAnimationWidget
-                                                .bouncingBall(
-                                              size: 25,
-                                              color: Colors.grey,
-                                            ),
-                                            onTap: () {
-                                              setState(() {
-                                                loadMoreData();
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                }
-
-                                final record = searchText.isEmpty
-                                    ? requests[index]
-                                    : filteredRecords[index];
-                                return buildListItem(record, baseUrl);
-                              },
-                            ),
-                          ),
-                        ),
                     ],
                   ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListView.builder(
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Card(
+                            margin:
+                            const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              title: Container(
+                                height: 20,
+                                color: Colors.grey[300],
+                              ),
+                              subtitle: Container(
+                                height: 16,
+                                color: Colors.grey[200],
+                                margin: const EdgeInsets.only(top: 8.0),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            )
+                : Column(
+              children: [
+                const SizedBox(height: 5),
+                Padding(
+                  padding: MediaQuery.of(context).size.width > 600
+                      ? const EdgeInsets.all(20.0)
+                      : const EdgeInsets.all(15.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          margin: const EdgeInsets.all(8),
+                          elevation: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border:
+                              Border.all(color: Colors.grey.shade50),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: TextField(
+                              onChanged: (employeeSearchValue) {
+                                setState(() {
+                                  searchText = employeeSearchValue;
+                                  getEmployeeDetails();
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Search',
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(8.0),
+                                  borderSide: BorderSide.none,
+                                ),
+                                prefixIcon: Transform.scale(
+                                  scale: 0.8,
+                                  child: Icon(Icons.search,
+                                      color: Colors.blueGrey.shade300),
+                                ),
+                                contentPadding:
+                                const EdgeInsets.symmetric(
+                                    vertical: 12.0, horizontal: 4.0),
+                                hintStyle: TextStyle(
+                                    color: Colors.blueGrey.shade300,
+                                    fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[100],
+                              ),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (requestsCount == 0)
+                  const Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search,
+                            color: Colors.black,
+                            size: 92,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            "There are no employee records to display",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: searchText.isEmpty
+                            ? requests.length + (hasMore ? 1 : 0)
+                            : filteredRecords.length,
+                        itemBuilder: (context, index) {
+                          if (index == requests.length &&
+                              searchText.isEmpty &&
+                              hasMore) {
+                            return Column(
+                              children: [
+                                if (nextPage != '')
+                                  Center(
+                                    child: ListTile(
+                                      title: LoadingAnimationWidget
+                                          .bouncingBall(
+                                        size: 25,
+                                        color: Colors.grey,
+                                      ),
+                                      onTap: () {
+                                        setState(() {
+                                          loadMoreData();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }
+
+                          final record = searchText.isEmpty
+                              ? requests[index]
+                              : filteredRecords[index];
+                          return buildListItem(record, baseUrl);
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           )
         ],
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }

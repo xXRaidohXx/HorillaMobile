@@ -13,8 +13,8 @@ class RotatingShiftPage extends StatefulWidget {
 
   const RotatingShiftPage(
       {super.key,
-      required this.selectedEmployerId,
-      required this.selectedEmployeeFullName});
+        required this.selectedEmployerId,
+        required this.selectedEmployeeFullName});
 
   @override
   _WorkTypeRequestPageState createState() => _WorkTypeRequestPageState();
@@ -37,11 +37,18 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
   final _controller = NotchBottomBarController(index: -1);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _typeAheadEditController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadEditRotatingShiftController =
-      TextEditingController();
+  TextEditingController();
+  final TextEditingController _typeAheadAddRotatingController =
+  TextEditingController();
+  final TextEditingController _rotateCreateDayController =
+  TextEditingController(text: "0");
+  final TextEditingController _rotateDayController = TextEditingController();
+  final TextEditingController _typeAheadCreateRotatingShiftController =
+  TextEditingController();
   TextEditingController createRotateStartDateController =
-      TextEditingController();
+  TextEditingController();
   List<Map<String, dynamic>> requests = [];
   List<dynamic> filteredRecords = [];
   List employeeIdValue = [''];
@@ -95,6 +102,9 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
   bool hasNoRecords = false;
   bool isSaveClick = true;
   bool _validateRequestedDate = false;
+  bool _validateRotateShift = false;
+  bool _validateBasedOn = false;
+  bool _validateRotateDay = false;
   int? selectedEmployerId;
 
   @override
@@ -114,13 +124,11 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     });
   }
 
-  /// Simulates loading by delaying for 5 seconds.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {});
   }
 
-  /// Retrieves the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -128,15 +136,13 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
       baseUrl = typedServerUrl ?? '';
     });
   }
-
-  /// Performs access checks for the current employee.
   void accessChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var employeeId = prefs.getInt("employee_id");
     var typedServerUrl = prefs.getString("typed_url");
-    var uri = Uri.parse(
-        '$typedServerUrl/api/base/rotating-shift-create-permission-check/$employeeId');
+    var uri =
+    Uri.parse('$typedServerUrl/api/base/rotating-shift-create-permission-check/$employeeId');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -146,13 +152,12 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Performs permission checks for the current attendance.
   void permissionChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
+    Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -162,7 +167,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Disposes of resources used by this widget.
   @override
   void dispose() {
     _pageController.dispose();
@@ -171,23 +175,22 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     super.dispose();
   }
 
-  /// Handles scroll events to load more data.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getRotatingShiftRequest();
     }
   }
 
+  /// widget list
   final List<Widget> bottomBarPages = [
     const Home(),
     const Overview(),
     const User(),
   ];
 
-  /// Prefetches employee data based on shared preferences.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -201,35 +204,32 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Retrieves the rotating shift request data.
   Future<void> getRotatingShiftRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -240,7 +240,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     });
     if (currentPage != 0) {
       var uri = Uri.parse(
-          '$typedServerUrl/api/base/individual-rotating-shifts?employee_id=$employeeId&page=$currentPage&search=$searchText');
+          '$typedServerUrl /api/base/individual-rotating-shifts?employee_id=$employeeId&page=$currentPage&search=$searchText');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -320,7 +320,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Retrieves the details of an employee.
   Future<void> getEmployeeDetails() async {
     employeeId = widget.selectedEmployerId;
     final prefs = await SharedPreferences.getInstance();
@@ -341,7 +340,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Retrieves the rotating shift data.
   Future<void> getRotatingShift() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -365,18 +363,10 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Retrieves the list of employees.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-
-    setState(() {
-      employeeItems.clear();
-      employeeIdMap.clear();
-      allEmployeeList.clear();
-    });
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/employee/employee-selector?page=$page');
@@ -384,38 +374,25 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var employeeResults = data['results'];
-
-        if (employeeResults.isEmpty) {
-          break;
-        }
-
         setState(() {
-          for (var employee in employeeResults) {
+          for (var employee in jsonDecode(response.body)['results']) {
             final firstName = employee['employee_first_name'] ?? '';
             final lastName = employee['employee_last_name'] ?? '';
             final fullName = (firstName.isEmpty ? '' : firstName) +
                 (lastName.isEmpty ? '' : ' $lastName');
             String employeeId = "${employee['id']}";
-
             employeeItems.add(fullName);
             employeeIdMap[fullName] = employeeId;
           }
-
-          allEmployeeList.addAll(
-            List<Map<String, dynamic>>.from(employeeResults),
+          allEmployeeList = List<Map<String, dynamic>>.from(
+            jsonDecode(response.body)['results'],
           );
         });
-      } else {
-        throw Exception('Failed to load employee data');
       }
     }
   }
 
-  /// Shows a custom date picker for selecting a date.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -441,7 +418,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     return null;
   }
 
-  /// Updates an existing rotating shift with the provided details.
   Future<void> updateRotatingShift(Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -499,7 +475,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Creates a new rotating shift with the provided details.
   Future<void> createRotatingShiftRequest(
       Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -556,7 +531,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Displays a dialog with an animation after a rotating shift has been created successfully.
   void showCreateRotatingShiftAnimation() {
     String jsonContent = '''
 {
@@ -578,8 +552,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Shift Created Successfully",
@@ -601,7 +574,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     });
   }
 
-  /// Shows a dialog with a rotating shift delete animation and success message.
   void showDeleteRotatingShiftAnimation() {
     String jsonContent = '''
 {
@@ -623,8 +595,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Shift Deleted Successfully",
@@ -646,7 +617,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     });
   }
 
-  /// Shows a dialog with a rotating shift update animation and success message.
   void showRotateShiftUpdateAnimation() {
     String jsonContent = '''
 {
@@ -668,8 +638,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Shift Updated Successfully",
@@ -691,7 +660,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     });
   }
 
-  /// Sends a delete request to remove a rotating shift assignment from the server.
   Future<void> deleteRotatingShiftRequest(int requestId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -712,7 +680,6 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Filters the list of records based on the provided search text.
   List<Map<String, dynamic>> filterRecords(String searchText) {
     if (searchText.isEmpty) {
       return requests;
@@ -726,11 +693,10 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     }
   }
 
-  /// Displays a dialog to edit the rotating shift details.
   void _showEditRotatingShift(
       BuildContext context, Map<String, dynamic> record) {
     TextEditingController editStartDateController =
-        TextEditingController(text: record['start_date'] ?? '');
+    TextEditingController(text: record['start_date'] ?? '');
     TextEditingController rotateDayController = TextEditingController(
         text: (record['rotate_after_day'] ?? '0').toString());
     final List<DropdownMenuItem<String>> basedOnItems = [
@@ -787,14 +753,14 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadEditController,
@@ -809,8 +775,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -822,7 +788,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                               setState(() {
                                 createEmployee = suggestion;
                                 selectedEditEmployeeId =
-                                    employeeIdMap[suggestion];
+                                employeeIdMap[suggestion];
                               });
                               _typeAheadEditController.text = suggestion;
                             },
@@ -845,20 +811,20 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Rotating Shift',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadEditRotatingShiftController,
@@ -873,8 +839,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             suggestionsCallback: (pattern) {
                               return rotateShiftItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -886,7 +852,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                               setState(() {
                                 editRotatedShift = suggestion;
                                 selectedEditRotatedShift =
-                                    rotateShiftIdMap[suggestion];
+                                rotateShiftIdMap[suggestion];
+                                _validateRotateShift = false;
                               });
                               _typeAheadEditRotatingShiftController.text =
                                   suggestion;
@@ -910,20 +877,20 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
                                   maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Start Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: editStartDateController,
@@ -946,7 +913,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                               labelText: 'Select a Start Date',
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateRequestedDate
                                   ? 'Please select a Start Date'
                                   : null,
@@ -954,14 +921,14 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Based On",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           DropdownButtonFormField<String>(
                             style: const TextStyle(
                               fontWeight: FontWeight.normal,
@@ -979,19 +946,19 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                               labelText: 'Choose Based On',
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Rotate After Day",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: rotateDayController,
                             keyboardType: TextInputType.number,
@@ -1035,8 +1002,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                                           setState(() {
                                             rotateDayController.text =
                                                 (currentValue > 0
-                                                        ? currentValue - 1
-                                                        : 0)
+                                                    ? currentValue - 1
+                                                    : 0)
                                                     .toString();
                                           });
                                         },
@@ -1088,9 +1055,478 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6.0),
+                            ),
+                          ),
+                        ),
+                        child: const Text('Save',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+                if (isAction)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showCreateRotatingShift(
+      BuildContext context, selectedEmployeeFullName, selectedEmployerId) {
+    final List<DropdownMenuItem<String>> basedOnItems = [
+      const DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
+      const DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
+      const DropdownMenuItem(value: 'after', child: Text('After')),
+    ];
+    _typeAheadAddRotatingController.text = widget.selectedEmployeeFullName;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Stack(
+              children: [
+                AlertDialog(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Add Rotating Shift",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 21),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                  content: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.95,
+                    height: MediaQuery.of(context).size.height * 0.50,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                _errorMessage ?? '',
+                                style: const TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.03),
+                          const Text(
+                            'Employee',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.01),
+                          TypeAheadField<String>(
+                            textFieldConfiguration: TextFieldConfiguration(
+                              controller: _typeAheadAddRotatingController,
+                              decoration: InputDecoration(
+                                labelText: 'Search Employee',
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0),
+                              ),
+                            ),
+                            suggestionsCallback: (pattern) {
+                              return employeeItems
+                                  .where((item) => item
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
+                                  .toList();
+                            },
+                            itemBuilder: (context, String suggestion) {
+                              return ListTile(
+                                title: Text(suggestion),
+                              );
+                            },
+                            onSuggestionSelected: (String suggestion) {
+                              setState(() {
+                                createEmployee = suggestion;
+                                selectedCreateEmployeeId =
+                                employeeIdMap[suggestion];
+                              });
+                              _typeAheadAddRotatingController.text = suggestion;
+                            },
+                            noItemsFoundBuilder: (context) => const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'No Employees Found',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            errorBuilder: (context, error) => Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Error: $error',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            hideOnEmpty: true,
+                            hideOnError: false,
+                            suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                              constraints: BoxConstraints(
+                                  maxHeight:
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.03),
+                          const Text(
+                            'Rotating Shift',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.01),
+                          TypeAheadField<String>(
+                            textFieldConfiguration: TextFieldConfiguration(
+                              controller:
+                              _typeAheadCreateRotatingShiftController,
+                              decoration: InputDecoration(
+                                labelText: 'Search Rotating Shift',
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0),
+                                errorText: _validateRotateShift
+                                    ? 'Please Select a Rotating Shift'
+                                    : null,
+                              ),
+                            ),
+                            suggestionsCallback: (pattern) {
+                              return rotateShiftItems
+                                  .where((item) => item
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
+                                  .toList();
+                            },
+                            itemBuilder: (context, String suggestion) {
+                              return ListTile(
+                                title: Text(suggestion),
+                              );
+                            },
+                            onSuggestionSelected: (String suggestion) {
+                              setState(() {
+                                createRotatedShift = suggestion;
+                                selectedCreateRotatedShift =
+                                rotateShiftIdMap[suggestion];
+                                _validateRotateShift = false;
+                              });
+                              _typeAheadCreateRotatingShiftController.text =
+                                  suggestion;
+                            },
+                            noItemsFoundBuilder: (context) => const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'No Rotating Shift Found',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            errorBuilder: (context, error) => Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Error: $error',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            hideOnEmpty: true,
+                            hideOnError: false,
+                            suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                              constraints: BoxConstraints(
+                                  maxHeight:
+                                  MediaQuery.of(context).size.height *
+                                      0.23), // Limit height
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.03),
+                          const Text(
+                            "Start Date",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.01),
+                          TextField(
+                            readOnly: true,
+                            controller: createRotateStartDateController,
+                            onTap: () async {
+                              final selectedDate = await showCustomDatePicker(
+                                  context, DateTime.now());
+                              if (selectedDate != null) {
+                                DateTime parsedDate = DateFormat('yyyy-MM-dd')
+                                    .parse(selectedDate);
+                                setState(() {
+                                  createRotateStartDateController.text =
+                                      DateFormat('yyyy-MM-dd')
+                                          .format(parsedDate);
+                                  _validateRequestedDate = false;
+                                });
+                              }
+                            },
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              labelText: 'Select Start Date',
+                              labelStyle: TextStyle(color: Colors.grey[350]),
+                              errorText: _validateRequestedDate
+                                  ? 'Please select a Start date'
+                                  : null,
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 10.0),
+                              hintText: 'Select a Start Date',
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.03),
+                          const Text(
+                            "Based On",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.01),
+                          DropdownButtonFormField<String>(
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black,
+                            ),
+                            items: basedOnItems,
+                            onChanged: (newValue) {
+                              setState(() {
+                                selectedCreateBasedOnValue = newValue!;
+                                _validateBasedOn = false;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              labelText: 'Select Based On',
+                              labelStyle: TextStyle(color: Colors.grey[350]),
+                              errorText: _validateBasedOn
+                                  ? 'Please select a Based On'
+                                  : null,
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 10.0),
+                              hintText: 'Select a Based On',
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.03),
+                          const Text(
+                            "Rotate After Day",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                              height:
+                              MediaQuery.of(context).size.height * 0.01),
+                          TextField(
+                            controller: _rotateCreateDayController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              labelText: 'Rotate After Day',
+                              labelStyle: TextStyle(color: Colors.grey[350]),
+                              errorText: _validateRotateDay
+                                  ? 'Please select a Rotate After Day'
+                                  : null,
+                              hintText: 'Select a Rotate After Day',
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10.0),
+                              suffixIcon: IntrinsicHeight(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      height: 24.0,
+                                      width: 24.0,
+                                      child: IconButton(
+                                        padding: const EdgeInsets.all(0),
+                                        icon: const Icon(Icons.arrow_drop_up,
+                                            size: 16.0),
+                                        onPressed: () {
+                                          int currentValue = int.parse(
+                                              _rotateCreateDayController.text);
+                                          setState(() {
+                                            _validateRotateDay = false;
+                                            _rotateCreateDayController.text =
+                                                (currentValue + 1).toString();
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 24.0,
+                                      width: 24.0,
+                                      child: IconButton(
+                                        padding: const EdgeInsets.all(0),
+                                        icon: const Icon(Icons.arrow_drop_down,
+                                            size: 16.0),
+                                        onPressed: () {
+                                          int currentValue = int.parse(
+                                              _rotateDayController.text);
+                                          setState(() {
+                                            _validateRotateDay = false;
+                                            _rotateDayController.text =
+                                                (currentValue > 0
+                                                    ? currentValue - 1
+                                                    : 0)
+                                                    .toString();
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  actions: <Widget>[
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () async {
+                          if (isSaveClick == true) {
+                            isSaveClick = false;
+                            setState(() {
+                              _errorMessage = null;
+                              isAction = true;
+                            });
+                            if (_typeAheadCreateRotatingShiftController
+                                .text.isEmpty) {
+                              setState(() {
+                                isAction = false;
+                                isSaveClick = true;
+                                _validateRotateShift = true;
+                                _validateRequestedDate = false;
+                                _validateBasedOn = false;
+                                _validateRotateDay = false;
+                                Navigator.of(context).pop(true);
+                                _showCreateRotatingShift(
+                                    context,
+                                    selectedEmployeeFullName,
+                                    selectedEmployerId);
+                              });
+                            } else if (createRotateStartDateController
+                                .text.isEmpty) {
+                              setState(() {
+                                isAction = false;
+                                isSaveClick = true;
+                                _validateRotateShift = false;
+                                _validateRequestedDate = true;
+                                _validateBasedOn = false;
+                                _validateRotateDay = false;
+                                Navigator.of(context).pop(true);
+                                _showCreateRotatingShift(
+                                    context,
+                                    selectedEmployeeFullName,
+                                    selectedEmployerId);
+                              });
+                            } else if (selectedCreateBasedOnValue == " ") {
+                              setState(() {
+                                isAction = false;
+                                isSaveClick = true;
+                                _validateRotateShift = false;
+                                _validateRequestedDate = false;
+                                _validateBasedOn = true;
+                                _validateRotateDay = false;
+                                Navigator.of(context).pop(true);
+                                _showCreateRotatingShift(
+                                    context,
+                                    selectedEmployeeFullName,
+                                    selectedEmployerId);
+                              });
+                            } else if (_rotateCreateDayController
+                                .text.isEmpty) {
+                              setState(() {
+                                isAction = false;
+                                isSaveClick = true;
+                                _validateRotateShift = false;
+                                _validateRequestedDate = false;
+                                _validateBasedOn = false;
+                                _validateRotateDay = true;
+                                Navigator.of(context).pop(true);
+                                _showCreateRotatingShift(
+                                    context,
+                                    selectedEmployeeFullName,
+                                    selectedEmployerId);
+                              });
+                            } else {
+                              Map<String, dynamic> createdDetails = {
+                                "employee_id": selectedCreateEmployeeId ??
+                                    widget.selectedEmployerId,
+                                "rotating_shift_id": selectedCreateRotatedShift,
+                                "start_date":
+                                createRotateStartDateController.text,
+                                "based_on": selectedCreateBasedOnValue,
+                                "rotate_after_day":
+                                _rotateCreateDayController.text,
+                              };
+                              await createRotatingShiftRequest(createdDetails);
+                              setState(() {
+                                isAction = false;
+                              });
+                              if (_errorMessage == null ||
+                                  _errorMessage!.isEmpty) {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => RotatingShiftPage(
+                                          selectedEmployerId:
+                                          widget.selectedEmployerId,
+                                          selectedEmployeeFullName:
+                                          widget.selectedEmployeeFullName)),
+                                );
+                                showCreateRotatingShiftAnimation();
+                              } else {
+                                Navigator.of(context).pop(true);
+                                _showCreateRotatingShift(
+                                    context,
+                                    selectedEmployeeFullName,
+                                    selectedEmployerId);
+                              }
+                            }
+                          }
+                        },
+                        style: ButtonStyle(
+                          backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.red),
+                          shape:
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -1115,6 +1551,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
   }
 
   Widget buildListItem(Map<String, dynamic> record, baseUrl) {
+    final image = employeeDetails['employee_profile'] ?? '';
+
     return GestureDetector(
       onTap: () {
         showDialog(
@@ -1151,12 +1589,12 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                             child: Stack(
                               children: [
                                 if (employeeDetails['employee_profile'] !=
-                                        null &&
+                                    null &&
                                     employeeDetails['employee_profile']
                                         .isNotEmpty)
                                   Positioned.fill(
@@ -1175,7 +1613,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                                     ),
                                   ),
                                 if (employeeDetails['employee_profile'] ==
-                                        null ||
+                                    null ||
                                     employeeDetails['employee_profile'].isEmpty)
                                   Positioned.fill(
                                     child: Container(
@@ -1471,7 +1909,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                                     return AlertDialog(
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                             "Confirmation",
@@ -1490,8 +1928,8 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                                       ),
                                       content: SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
+                                        MediaQuery.of(context).size.height *
+                                            0.1,
                                         child: const Center(
                                           child: Text(
                                             "Are you sure you want to delete this Rotating Shift?",
@@ -1519,21 +1957,20 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(Colors.red),
+                                              MaterialStateProperty.all<
+                                                  Color>(Colors.red),
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  BorderRadius.circular(8.0),
                                                 ),
                                               ),
                                             ),
                                             child: const Text(
                                               "Continue",
-                                              style: TextStyle(
-                                                  color: Colors.white),
+                                              style:
+                                              TextStyle(color: Colors.white),
                                             ),
                                           ),
                                         ),
@@ -1643,99 +2080,131 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
     );
   }
 
-  Future<bool> _onWillPop() async {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/employees_form',
-      (route) => false,
-      arguments: arguments,
-    );
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool permissionCheck =
-        ModalRoute.of(context)?.settings.arguments != null
-            ? ModalRoute.of(context)!.settings.arguments as bool
-            : false;
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
+    ModalRoute.of(context)?.settings.arguments != null
+        ? ModalRoute.of(context)!.settings.arguments as bool
+        : false;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      key: _scaffoldKey,
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        key: _scaffoldKey,
-        appBar: AppBar(
-          forceMaterialTransparency: true,
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          title: const Text('Rotating Shift',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        ),
-        body: _isShimmerVisible
-            ? _buildLoadingWidget()
-            : _buildEmployeeDetailsWidget(),
-        bottomNavigationBar: (bottomBarPages.length <= maxCount)
-            ? AnimatedNotchBottomBar(
-                notchBottomBarController: _controller,
-                color: Colors.red,
-                showLabel: true,
-                notchColor: Colors.red,
-                kBottomRadius: 28.0,
-                kIconSize: 24.0,
-                removeMargins: false,
-                bottomBarWidth: MediaQuery.of(context).size.width * 1,
-                durationInMilliSeconds: 300,
-                bottomBarItems: const [
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-                onTap: (index) async {
-                  switch (index) {
-                    case 0:
-                      Navigator.pushNamed(context, '/home');
-                      break;
-                    case 1:
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                      break;
-                    case 2:
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                      break;
-                  }
-                },
-              )
-            : null,
+        title: const Text('Rotating Shift',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.all(12.0),
+        //     child: Row(
+        //       mainAxisAlignment: MainAxisAlignment.end,
+        //       children: [
+        //         // if (permissionCheck)
+        //         Container(
+        //           alignment: Alignment.centerRight,
+        //           child: ElevatedButton(
+        //             onPressed: () {
+        //               setState(() {
+        //                 _errorMessage = null;
+        //                 _typeAheadCreateRotatingShiftController.clear();
+        //                 createRotateStartDateController.clear();
+        //                 selectedCreateBasedOnValue = " ";
+        //                 _rotateCreateDayController.text = "0";
+        //                 _validateRotateShift = false;
+        //                 _validateRequestedDate = false;
+        //                 _validateBasedOn = false;
+        //                 _validateRotateDay = false;
+        //                 isAction = false;
+        //               });
+        //               _showCreateRotatingShift(context,
+        //                   selectedEmployeeFullName, selectedEmployerId);
+        //             },
+        //             style: ElevatedButton.styleFrom(
+        //               minimumSize: const Size(75, 50),
+        //               backgroundColor: Colors.white,
+        //               shape: RoundedRectangleBorder(
+        //                 borderRadius: BorderRadius.circular(4.0),
+        //                 side: const BorderSide(color: Colors.red),
+        //               ),
+        //             ),
+        //             child: const Text('CREATE',
+        //                 style: TextStyle(color: Colors.red)),
+        //           ),
+        //         ),
+        //         // ),
+        //       ],
+        //     ),
+        //   ),
+        // ],
       ),
+      body: _isShimmerVisible
+          ? _buildLoadingWidget()
+          : _buildEmployeeDetailsWidget(),
+      bottomNavigationBar: (bottomBarPages.length <= maxCount)
+          ? AnimatedNotchBottomBar(
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
+          : null,
     );
   }
 
@@ -1786,7 +2255,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border:
-                                    Border.all(color: Colors.grey, width: 1.0),
+                                Border.all(color: Colors.grey, width: 1.0),
                               ),
                             ),
                           ],
@@ -1835,6 +2304,7 @@ class _WorkTypeRequestPageState extends State<RotatingShiftPage> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
+              // Adjust the padding as needed
               child: ListView.builder(
                 controller: _scrollController,
                 itemCount: searchText.isEmpty

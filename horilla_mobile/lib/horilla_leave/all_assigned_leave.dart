@@ -53,15 +53,11 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
   String? selectedLeaveType;
   late String baseUrl = '';
   late Map<String, dynamic> arguments;
-  bool hasPermissionLeaveTypeCheckExecuted = false;
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void initState() {
     super.initState();
     leaveType.clear();
-    checkPermissions();
     getLeaveType();
     getAssignedLeaveType();
     getLeaveTypes();
@@ -71,24 +67,13 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     _simulateLoading();
   }
 
-  /// Checks the necessary permissions for leave overview, leave type, leave request, and leave assignment.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
-    if (!hasPermissionLeaveTypeCheckExecuted) {
-      await permissionLeaveTypeChecks();
-      hasPermissionLeaveTypeCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
+    await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Simulates a loading state by delaying for 20 seconds and then updating the UI state.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 20));
     setState(() {
@@ -96,7 +81,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     });
   }
 
-  /// Checks permissions for leave overview by sending a request to the server.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -116,7 +100,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Checks permissions for leave types by sending a request to the server.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -136,7 +119,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Checks permissions for leave requests by sending a request to the server.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -156,7 +138,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Checks permissions for leave assignments by sending a request to the server.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -176,7 +157,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Fetches and stores employee data from the server.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -191,35 +171,32 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Retrieves the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -228,17 +205,10 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     });
   }
 
-  /// Retrieves a list of employees from the server and stores it.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-    setState(() {
-      employeeItems.clear();
-      employeeItemsId.clear();
-      allEmployeeList.clear();
-    });
-
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/employee/employee-selector/?page=$page');
@@ -248,29 +218,21 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
       });
 
       if (response.statusCode == 200) {
-        var results = jsonDecode(response.body)['results'];
-        if (results.isEmpty) {
-          break;
-        }
-
         setState(() {
-          for (var employee in results) {
+          for (var employee in jsonDecode(response.body)['results']) {
             String fullName =
                 "${employee['employee_first_name']} ${employee['employee_last_name']}";
             employeeItems.add(fullName);
             employeeItemsId.add(employee['id']);
           }
-          allEmployeeList.addAll(
-            List<Map<String, dynamic>>.from(results),
+          allEmployeeList = List<Map<String, dynamic>>.from(
+            jsonDecode(response.body)['results'],
           );
         });
-      } else {
-        throw Exception('Failed to load employee data');
-      }
+      } else {}
     }
   }
 
-  /// Retrieves leave types from the server and stores them.
   Future<void> getLeaveTypes() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -296,7 +258,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Displays a dialog for assigning leaves with the option to select leave types and employees.
   void showAssignAnimation() {
     String jsonContent = '''
 {
@@ -318,8 +279,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Assigned Successfully",
@@ -341,7 +301,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     });
   }
 
-  /// Fetches the leave types from the server and stores them in the state.
   Future<void> getLeaveType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -361,7 +320,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Displays a dialog to assign leave types to employees.
   _showCreateDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -396,7 +354,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                         children: [
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           const Text("Leave Type"),
                           MultiSelectDropdown.simpleList(
                             list: leaveItems,
@@ -419,7 +377,8 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
+                          // Display selected leave names
                           Wrap(
                             spacing: 8.0,
                             children: selectedLeaveIds.map((leave) {
@@ -436,7 +395,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           const Padding(
                             padding: EdgeInsets.all(4.0),
                             child: Text("Employee"),
@@ -479,7 +438,8 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
+                          // Display selected employee names
                           Wrap(
                             spacing: 8.0,
                             children: selectedEmployeeNames.map((name) {
@@ -489,7 +449,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                                 onDeleted: () {
                                   setState(() {
                                     int index =
-                                        selectedEmployeeNames.indexOf(name);
+                                    selectedEmployeeNames.indexOf(name);
                                     if (index != -1) {
                                       selectedEmployeeNames.removeAt(index);
                                       selectedEmployeeIds.removeAt(index);
@@ -501,7 +461,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -520,8 +480,8 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                               },
                               style: ButtonStyle(
                                 backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.red),
+                                MaterialStateProperty.all<Color>(
+                                    Colors.red),
                                 shape: MaterialStateProperty.all<
                                     RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
@@ -550,7 +510,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     );
   }
 
-  /// Creates assigned leave types for the selected employees and leave types.
   Future<void> createAssignedLeaveType(
       selectedEmployeeIds, selectedLeaveIds) async {
     final prefs = await SharedPreferences.getInstance();
@@ -577,7 +536,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Fetches the assigned leave types for the selected leave type items.
   Future<void> getAssignedLeaveType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -620,7 +578,6 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     }
   }
 
-  /// Filters the employee records based on the provided search text.
   List<Map<String, dynamic>> filterRecords(String searchText) {
     List<Map<String, dynamic>> allEmployeeRecords = allEmployeeList;
 
@@ -628,7 +585,8 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
     allRecords.addAll(allEmployeeRecords);
 
     List<Map<String, dynamic>> filteredRecords = allRecords.where((record) {
-      String firstName = record['employee_first_name'].toString().toLowerCase();
+      String firstName =
+      record['employee_first_name'].toString().toLowerCase();
       String lastName = record['employee_last_name'].toString().toLowerCase();
       String fullName = '$firstName $lastName';
       String search = searchText.toLowerCase();
@@ -695,129 +653,175 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
           ? _buildLoadingWidget()
           : _buildAllAssignedLeaveWidget(),
       drawer: Drawer(
-        child: ListView(
-          padding: const EdgeInsets.all(0),
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(),
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Image.asset('Assets/horilla-logo.png'),
-                ),
-              ),
-            ),
-            permissionLeaveOverviewCheck
-                ? ListTile(
+        child: FutureBuilder<void>(
+          future: checkPermissions(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                ],
+              );
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('Error loading permissions.'));
+            } else {
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  permissionLeaveOverviewCheck
+                      ? ListTile(
                     title: const Text('Overview'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_overview');
                     },
                   )
                 : const SizedBox.shrink(),
+
             permissionMyLeaveRequestCheck
-                ? ListTile(
+                      ? ListTile(
                     title: const Text('My Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/my_leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveRequestCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveRequestCheck
+                      ? ListTile(
                     title: const Text('Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveTypeCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveTypeCheck
+                      ? ListTile(
                     title: const Text('Leave Type'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_types');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAllocationCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAllocationCheck
+                      ? ListTile(
                     title: const Text('Leave Allocation Request'),
                     onTap: () {
-                      Navigator.pushNamed(context, '/leave_allocation_request');
+                      Navigator.pushNamed(
+                          context, '/leave_allocation_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAssignCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAssignCheck
+                      ? ListTile(
                     title: const Text('All Assigned Leave'),
                     onTap: () {
                       Navigator.pushNamed(context, '/all_assigned_leave');
                     },
                   )
-                : const SizedBox.shrink(),
-          ],
+                      : const SizedBox.shrink(),
+                ],
+              );
+            }
+          },
         ),
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }
@@ -948,7 +952,7 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
       List<Map<String, dynamic>> leaveType, String searchText) {
     List<Map<String, dynamic>> filteredLeaveType = leaveType.where((leave) {
       String employeeFullName =
-          leave['employee_id']['full_name'].toString().toLowerCase();
+      leave['employee_id']['full_name'].toString().toLowerCase();
       return employeeFullName.contains(searchText.toLowerCase());
     }).toList();
 
@@ -981,181 +985,181 @@ class _AllAssignedLeave extends State<AllAssignedLeave> {
                       borderRadius: BorderRadius.circular(8.0),
                       child: _isShimmerVisible
                           ? Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              period: const Duration(seconds: 30),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4.0),
-                                  border: Border.all(color: Colors.grey),
-                                  color: Colors.white,
-                                ),
-                                child: const TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Search',
-                                    border: InputBorder.none,
-                                    prefixIcon: Icon(Icons.search),
-                                    contentPadding: EdgeInsets.symmetric(
-                                        vertical: 12.0, horizontal: 4.0),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : ExpansionTile(
-                              collapsedBackgroundColor: Colors.red.shade50,
-                              backgroundColor: Colors.red.shade100,
-                              title: Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: leaveRecords.isNotEmpty &&
-                                              leaveRecords[0]['leave_type_id']
-                                                      ['icon'] !=
-                                                  null
-                                          ? Colors.transparent
-                                          : Colors.white,
-                                    ),
-                                    child: Container(
-                                      width: 40.0,
-                                      height: 40.0,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: Colors.grey, width: 1.0),
-                                      ),
-                                      child: Stack(
-                                        children: [
-                                          if (leaveRecords[0]['leave_type_id']
-                                                      ['icon'] !=
-                                                  null &&
-                                              leaveRecords[0]['leave_type_id']
-                                                      ['icon']
-                                                  .isNotEmpty)
-                                            Positioned.fill(
-                                              child: ClipOval(
-                                                child: Image.network(
-                                                  baseUrl +
-                                                      leaveRecords[0]
-                                                              ['leave_type_id']
-                                                          ['icon'],
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (BuildContext
-                                                          context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
-                                                    return const Icon(
-                                                        Icons
-                                                            .calendar_month_outlined,
-                                                        color: Colors.grey);
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          if (leaveRecords[0]['leave_type_id']
-                                                      ['icon'] ==
-                                                  null ||
-                                              leaveRecords[0]['leave_type_id']
-                                                      ['icon']
-                                                  .isEmpty)
-                                            Positioned.fill(
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.grey[400],
-                                                ),
-                                                child: const Icon(Icons
-                                                    .calendar_month_outlined),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text('$leaveName (${leaveRecords.length})',
-                                      style: const TextStyle(fontSize: 15)),
-                                ],
-                              ),
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 200.0,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: leaveRecords.map((record) {
-                                        final fullName =
-                                            record['employee_id']['full_name'];
-                                        final profile = record['employee_id']
-                                            ['employee_profile'];
-
-                                        return Container(
-                                          color: Colors.white,
-                                          child: ListTile(
-                                            leading: Container(
-                                              width: 40.0,
-                                              height: 40.0,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                    color: Colors.grey,
-                                                    width: 1.0),
-                                              ),
-                                              child: Stack(
-                                                children: [
-                                                  if (profile != null &&
-                                                      profile.isNotEmpty)
-                                                    Positioned.fill(
-                                                      child: ClipOval(
-                                                        child: Image.network(
-                                                          baseUrl + profile,
-                                                          fit: BoxFit.cover,
-                                                          errorBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
-                                                            return const Icon(
-                                                                Icons.person,
-                                                                color: Colors
-                                                                    .grey);
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  if (profile == null ||
-                                                      profile.isEmpty)
-                                                    Positioned.fill(
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color:
-                                                              Colors.grey[400],
-                                                        ),
-                                                        child: const Icon(
-                                                            Icons.person),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                            title: Text(fullName),
-                                            tileColor: Colors.white,
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        period: const Duration(seconds: 30),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4.0),
+                            border: Border.all(color: Colors.grey),
+                            color: Colors.white,
+                          ),
+                          child: const TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Search',
+                              border: InputBorder.none,
+                              prefixIcon: Icon(Icons.search),
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12.0, horizontal: 4.0),
                             ),
+                          ),
+                        ),
+                      )
+                          : ExpansionTile(
+                        collapsedBackgroundColor: Colors.red.shade50,
+                        backgroundColor: Colors.red.shade100,
+                        title: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: leaveRecords.isNotEmpty &&
+                                    leaveRecords[0]['leave_type_id']
+                                    ['icon'] !=
+                                        null
+                                    ? Colors.transparent
+                                    : Colors.white,
+                              ),
+                              child: Container(
+                                width: 40.0,
+                                height: 40.0,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.grey, width: 1.0),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    if (leaveRecords[0]['leave_type_id']
+                                    ['icon'] !=
+                                        null &&
+                                        leaveRecords[0]['leave_type_id']
+                                        ['icon']
+                                            .isNotEmpty)
+                                      Positioned.fill(
+                                        child: ClipOval(
+                                          child: Image.network(
+                                            baseUrl +
+                                                leaveRecords[0]
+                                                ['leave_type_id']
+                                                ['icon'],
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (BuildContext
+                                            context,
+                                                Object exception,
+                                                StackTrace? stackTrace) {
+                                              return const Icon(
+                                                  Icons
+                                                      .calendar_month_outlined,
+                                                  color: Colors.grey);
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    if (leaveRecords[0]['leave_type_id']
+                                    ['icon'] ==
+                                        null ||
+                                        leaveRecords[0]['leave_type_id']
+                                        ['icon']
+                                            .isEmpty)
+                                      Positioned.fill(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey[400],
+                                          ),
+                                          child: const Icon(Icons
+                                              .calendar_month_outlined),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text('$leaveName (${leaveRecords.length})',
+                                style: const TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxHeight: 200.0,
+                            ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.stretch,
+                                children: leaveRecords.map((record) {
+                                  final fullName =
+                                  record['employee_id']['full_name'];
+                                  final profile = record['employee_id']
+                                  ['employee_profile'];
+
+                                  return Container(
+                                    color: Colors.white,
+                                    child: ListTile(
+                                      leading: Container(
+                                        width: 40.0,
+                                        height: 40.0,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.grey,
+                                              width: 1.0),
+                                        ),
+                                        child: Stack(
+                                          children: [
+                                            if (profile != null &&
+                                                profile.isNotEmpty)
+                                              Positioned.fill(
+                                                child: ClipOval(
+                                                  child: Image.network(
+                                                    baseUrl + profile,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder:
+                                                        (BuildContext
+                                                    context,
+                                                        Object
+                                                        exception,
+                                                        StackTrace?
+                                                        stackTrace) {
+                                                      return const Icon(
+                                                          Icons.person,
+                                                          color: Colors
+                                                              .grey);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            if (profile == null ||
+                                                profile.isEmpty)
+                                              Positioned.fill(
+                                                child: Container(
+                                                  decoration:
+                                                  BoxDecoration(
+                                                    shape:
+                                                    BoxShape.circle,
+                                                    color:
+                                                    Colors.grey[400],
+                                                  ),
+                                                  child:
+                                                  const Icon(Icons.person),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      title: Text(fullName),
+                                      tileColor: Colors.white,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

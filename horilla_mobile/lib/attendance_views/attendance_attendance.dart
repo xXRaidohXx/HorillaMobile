@@ -64,15 +64,16 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
   String? editEmployee;
   var employeeItems = [''];
   var shiftItems = [''];
+  int maxCount = 5;
   final List<Widget> bottomBarPages = [];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
   final _controller = NotchBottomBarController(index: -1);
   final TextEditingController _typeAheadController = TextEditingController();
   final TextEditingController _typeAheadCreateController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadCreateShiftController =
-      TextEditingController();
+  TextEditingController();
   bool _validateEmployee = false;
   bool _validateDate = false;
   bool _editValidateDate = false;
@@ -100,7 +101,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
   int toValidate = 0;
   int overtime = 0;
   int validated = 0;
-  int maxCount = 5;
   Timer? _debounce;
 
   @override
@@ -108,7 +108,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     super.initState();
     prefetchData();
     _simulateLoading();
-    permissionChecks();
     _scrollController.addListener(_scrollListener);
     getAllNonValidatedAttendance();
     getAllOvertimeAttendance();
@@ -128,7 +127,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     checkOutTimeValidated.text = "";
   }
 
-  /// Simulates a loading delay of 5 seconds.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {});
@@ -142,7 +140,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     super.dispose();
   }
 
-  /// Retrieves the base URL from shared preferences and updates the state.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -151,10 +148,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     });
   }
 
-  /// Listens to the scroll position and loads more data when the user scrolls to the bottom.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getAllNonValidatedAttendance();
@@ -163,7 +159,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Displays a dialog with an animation indicating that attendance has been created successfully.
   void showCreateAnimation() {
     String jsonContent = '''
 {
@@ -185,8 +180,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Created Successfully",
@@ -208,7 +202,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     });
   }
 
-  /// Displays a dialog with an animation indicating that attendance has been updated successfully.
   void showUpdateAnimation() {
     String jsonContent = '''
 {
@@ -230,8 +223,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Updated Successfully",
@@ -253,7 +245,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     });
   }
 
-  /// Displays a dialog with an animation indicating that attendance has been deleted successfully.
   void showDeleteAnimation() {
     String jsonContent = '''
 {
@@ -275,8 +266,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Deleted Successfully",
@@ -298,7 +288,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     });
   }
 
-  /// Displays a dialog with an animation indicating that attendance has been validated successfully.
   void showValidateAnimation() {
     String jsonContent = '''
 {
@@ -320,8 +309,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Validated Successfully",
@@ -343,7 +331,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     });
   }
 
-  /// Fetches all non-validated attendance records.
   Future<void> getAllNonValidatedAttendance() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -372,7 +359,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsNonValidAttendance.map(serializeMap).toList();
+          requestsNonValidAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsNonValidAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -405,7 +392,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsNonValidAttendance.map(serializeMap).toList();
+          requestsNonValidAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsNonValidAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -419,7 +406,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Fetches all overtime attendance records.
   Future<void> getAllOvertimeAttendance() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -447,7 +433,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsOvertimeAttendance.map(serializeMap).toList();
+          requestsOvertimeAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsOvertimeAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -478,7 +464,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsOvertimeAttendance.map(serializeMap).toList();
+          requestsOvertimeAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsOvertimeAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -489,7 +475,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Fetches all validated attendance records.
   Future<void> getAllValidatedAttendance() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -517,7 +502,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsValidatedAttendance.map(serializeMap).toList();
+          requestsValidatedAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsValidatedAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -547,7 +532,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
           }
 
           List<String> mapStrings =
-              requestsValidatedAttendance.map(serializeMap).toList();
+          requestsValidatedAttendance.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsValidatedAttendance =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -559,7 +544,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Filters non-validated attendance records based on search text.
   List<Map<String, dynamic>> filterNonValidAttendance(String searchText) {
     if (searchText.isEmpty) {
       return requestsNonValidAttendance;
@@ -573,7 +557,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Filters overtime attendance records based on search text.
   List<Map<String, dynamic>> filterOvertimeAttendance(String searchText) {
     if (searchText.isEmpty) {
       return requestsOvertimeAttendance;
@@ -587,7 +570,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Filters validated attendance records based on search text.
   List<Map<String, dynamic>> filterValidateRecords(String searchText) {
     if (searchText.isEmpty) {
       return requestsValidatedAttendance;
@@ -601,7 +583,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Prefetches employee data for the current user.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -616,41 +597,39 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Checks user permissions for attendance-related operations.
   Future<void> permissionChecks() async {
+
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
+    Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -661,13 +640,13 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
       permissionAttendance = true;
       permissionAttendanceRequest = true;
       permissionHourAccount = true;
-    } else {
+    }
+    else{
       permissionAttendanceRequest = true;
       permissionHourAccount = true;
     }
   }
 
-  /// Verifies if the current user is a manager.
   void managerChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -682,7 +661,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Fetches shift details for employees.
   Future<void> getShiftDetails() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -704,7 +682,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Fetches a paginated list of employees.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -716,15 +693,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var employeeResults = data['results'];
-        if (employeeResults.isEmpty) {
-          break;
-        }
         setState(() {
-          for (var employee in employeeResults) {
+          for (var employee in jsonDecode(response.body)['results']) {
             final firstName = employee['employee_first_name'] ?? '';
             final lastName = employee['employee_last_name'] ?? '';
             final fullName = (firstName.isEmpty ? '' : firstName) +
@@ -734,13 +705,10 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
             employeeIdMap[fullName] = employeeId;
           }
         });
-      } else {
-        throw Exception('Failed to load employee data');
       }
     }
   }
 
-  /// Creates a new attendance record with the provided details.
   Future<void> createNewAttendance(Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -761,7 +729,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         "attendance_clock_in_date": createdDetails['attendance_clock_in_date'],
         "attendance_clock_in": createdDetails['attendance_clock_in'],
         "attendance_clock_out_date":
-            createdDetails['attendance_clock_out_date'],
+        createdDetails['attendance_clock_out_date'],
         "attendance_clock_out": createdDetails['attendance_clock_out'],
         "attendance_worked_hour": createdDetails['attendance_worked_hour'],
         "minimum_hour": createdDetails['minimum_hour'],
@@ -816,14 +784,13 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Updates an existing attendance record with the provided details.
   Future<void> updateAttendance(Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     String attendanceId = updatedDetails['id'].toString();
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
+    Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
     var response = await http.put(
       uri,
       headers: {
@@ -837,7 +804,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         "attendance_clock_in_date": updatedDetails['attendance_clock_in_date'],
         "attendance_clock_in": updatedDetails['attendance_clock_in'],
         "attendance_clock_out_date":
-            updatedDetails['attendance_clock_out_date'],
+        updatedDetails['attendance_clock_out_date'],
         "attendance_clock_out": updatedDetails['attendance_clock_out'],
         "attendance_worked_hour": updatedDetails['attendance_worked_hour'],
         "minimum_hour": updatedDetails['minimum_hour'],
@@ -889,7 +856,6 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Updates overtime attendance details on the server.
   Future<void> updateOvertimeAttendance(
       Map<String, dynamic> updatedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -897,7 +863,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     var typedServerUrl = prefs.getString("typed_url");
     String attendanceId = updatedDetails['id'].toString();
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
+    Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
     var response = await http.put(
       uri,
       headers: {
@@ -911,7 +877,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         "attendance_clock_in_date": updatedDetails['attendance_clock_in_date'],
         "attendance_clock_in": updatedDetails['attendance_clock_in'],
         "attendance_clock_out_date":
-            updatedDetails['attendance_clock_out_date'],
+        updatedDetails['attendance_clock_out_date'],
         "attendance_clock_out": updatedDetails['attendance_clock_out'],
         "attendance_worked_hour": updatedDetails['attendance_worked_hour'],
         "minimum_hour": updatedDetails['minimum_hour'],
@@ -962,14 +928,13 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     }
   }
 
-  /// Deletes an attendance record from the server.
   Future<void> deleteAttendance(Map<String, dynamic> deletedDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     String attendanceId = deletedDetails['id'].toString();
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
+    Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
     var response = await http.delete(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -979,12 +944,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
       currentPage = 0;
       getAllOvertimeAttendance();
       setState(() {});
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Deletes a non-validated attendance record from the server.
   Future<void> deleteNonValidatedAttendance(
       Map<String, dynamic> deletedDetails) async {
     final prefs = await SharedPreferences.getInstance();
@@ -992,7 +957,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     var typedServerUrl = prefs.getString("typed_url");
     String attendanceId = deletedDetails['id'].toString();
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
+    Uri.parse('$typedServerUrl/api/attendance/attendance/$attendanceId');
     var response = await http.delete(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -1003,12 +968,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
       getAllNonValidatedAttendance();
       setState(() {});
       showDeleteAnimation();
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Validates an attendance record on the server.
   Future<void> validateAttendance(Map<String, dynamic> deletedDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1024,14 +989,13 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
       isSaveClick = false;
       currentPage = 0;
       getAllNonValidatedAttendance();
-      getAllValidatedAttendance();
       setState(() {});
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Approves an overtime attendance record on the server.
   Future<void> validateOverTime(Map<String, dynamic> deletedDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1048,12 +1012,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
       currentPage = 0;
       getAllOvertimeAttendance();
       setState(() {});
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Displays a custom date picker dialog and returns the selected date as a string.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -1082,21 +1046,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
   void _showValidateAttendance(
       BuildContext context, Map<String, dynamic> record) {
     TextEditingController editCheckInDateController =
-        TextEditingController(text: record['attendance_clock_in_date']);
+    TextEditingController(text: record['attendance_clock_in_date']);
     TextEditingController editCheckInHoursController =
-        TextEditingController(text: record['attendance_clock_in']);
+    TextEditingController(text: record['attendance_clock_in']);
     TextEditingController editCheckOutDateController =
-        TextEditingController(text: record['attendance_clock_out_date']);
+    TextEditingController(text: record['attendance_clock_out_date']);
     TextEditingController editCheckOutHoursController =
-        TextEditingController(text: record['attendance_clock_out']);
+    TextEditingController(text: record['attendance_clock_out']);
     TextEditingController editWorkedHoursController =
-        TextEditingController(text: record['attendance_worked_hour']);
+    TextEditingController(text: record['attendance_worked_hour']);
     TextEditingController editMinimumHourController =
-        TextEditingController(text: record['minimum_hour']);
+    TextEditingController(text: record['minimum_hour']);
     TextEditingController editAttendanceDateController =
-        TextEditingController(text: record['attendance_date']);
+    TextEditingController(text: record['attendance_date']);
     TextEditingController typeAheadEditShiftController =
-        TextEditingController(text: record['shift_name']);
+    TextEditingController(text: record['shift_name']);
     _typeAheadController.text = (record['employee_first_name'] ?? "") +
         " " +
         (record['employee_last_name'] ?? "");
@@ -1146,14 +1110,14 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadController,
@@ -1168,8 +1132,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1181,7 +1145,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               setState(() {
                                 editEmployee = suggestion;
                                 selectedEditEmployeeId =
-                                    employeeIdMap[suggestion];
+                                employeeIdMap[suggestion];
                                 _validateEmployee = false;
                               });
                               _typeAheadController.text = suggestion;
@@ -1204,21 +1168,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Attendance Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: editAttendanceDateController,
@@ -1242,19 +1204,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                   ? 'Please select a Attendance date'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Shift",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: typeAheadEditShiftController,
@@ -1269,8 +1231,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return shiftDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1303,14 +1265,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1323,19 +1283,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: editCheckInDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             editCheckInDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -1354,7 +1314,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1365,8 +1325,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editCheckInHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -1381,21 +1341,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               editCheckInHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               editCheckInHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -1408,7 +1368,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1421,19 +1381,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: editCheckOutDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             editCheckOutDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -1452,7 +1412,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1463,8 +1423,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editCheckOutHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -1479,21 +1439,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               editCheckOutHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               editCheckOutHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -1506,7 +1466,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1519,8 +1479,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editWorkedHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -1543,7 +1503,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1554,8 +1514,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editMinimumHourController,
                                       keyboardType: TextInputType.datetime,
@@ -1606,29 +1566,29 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                 "employee_id": selectedEditEmployeeId ??
                                     record['employee_id'].toString(),
                                 "attendance_date":
-                                    editAttendanceDateController.text,
+                                editAttendanceDateController.text,
                                 'shift_id': selectedEditShiftId ??
                                     record['shift_id'].toString(),
                                 'attendance_clock_in_date':
-                                    editCheckInDateController.text.isEmpty
-                                        ? record['attendance_clock_in_date']
-                                        : editCheckInDateController.text,
+                                editCheckInDateController.text.isEmpty
+                                    ? record['attendance_clock_in_date']
+                                    : editCheckInDateController.text,
                                 'attendance_clock_in':
-                                    editCheckInHoursSpent.isEmpty
-                                        ? record['attendance_clock_in']
-                                        : editCheckInHoursSpent,
+                                editCheckInHoursSpent.isEmpty
+                                    ? record['attendance_clock_in']
+                                    : editCheckInHoursSpent,
                                 'attendance_clock_out_date':
-                                    editCheckOutDateController.text.isEmpty
-                                        ? record['attendance_clock_out_date']
-                                        : editCheckOutDateController.text,
+                                editCheckOutDateController.text.isEmpty
+                                    ? record['attendance_clock_out_date']
+                                    : editCheckOutDateController.text,
                                 'attendance_clock_out':
-                                    editCheckOutHoursSpent.isEmpty
-                                        ? record['attendance_clock_out']
-                                        : editCheckOutHoursSpent,
+                                editCheckOutHoursSpent.isEmpty
+                                    ? record['attendance_clock_out']
+                                    : editCheckOutHoursSpent,
                                 'attendance_worked_hour':
-                                    editWorkHoursSpent.isEmpty
-                                        ? record['attendance_worked_hour']
-                                        : editWorkHoursSpent,
+                                editWorkHoursSpent.isEmpty
+                                    ? record['attendance_worked_hour']
+                                    : editWorkHoursSpent,
                                 'minimum_hour': editMinimumHoursSpent.isEmpty
                                     ? record['minimum_hour']
                                     : editMinimumHoursSpent,
@@ -1650,9 +1610,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -1679,21 +1639,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
   void _showValidateOvertimeAttendance(
       BuildContext context, Map<String, dynamic> record) {
     TextEditingController editCheckInDateController =
-        TextEditingController(text: record['attendance_clock_in_date']);
+    TextEditingController(text: record['attendance_clock_in_date']);
     TextEditingController editCheckInHoursController =
-        TextEditingController(text: record['attendance_clock_in']);
+    TextEditingController(text: record['attendance_clock_in']);
     TextEditingController editCheckOutDateController =
-        TextEditingController(text: record['attendance_clock_out_date']);
+    TextEditingController(text: record['attendance_clock_out_date']);
     TextEditingController editCheckOutHoursController =
-        TextEditingController(text: record['attendance_clock_out']);
+    TextEditingController(text: record['attendance_clock_out']);
     TextEditingController editWorkedHoursController =
-        TextEditingController(text: record['attendance_worked_hour']);
+    TextEditingController(text: record['attendance_worked_hour']);
     TextEditingController editMinimumHourController =
-        TextEditingController(text: record['minimum_hour']);
+    TextEditingController(text: record['minimum_hour']);
     TextEditingController editAttendanceDateController =
-        TextEditingController(text: record['attendance_date']);
+    TextEditingController(text: record['attendance_date']);
     TextEditingController typeAheadEditShiftController =
-        TextEditingController(text: record['shift_name']);
+    TextEditingController(text: record['shift_name']);
     _typeAheadController.text = (record['employee_first_name'] ?? "") +
         " " +
         (record['employee_last_name'] ?? "");
@@ -1743,14 +1703,14 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadController,
@@ -1765,8 +1725,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1778,7 +1738,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               setState(() {
                                 editEmployee = suggestion;
                                 selectedEditEmployeeId =
-                                    employeeIdMap[suggestion];
+                                employeeIdMap[suggestion];
                                 _validateEmployee = false;
                               });
                               _typeAheadController.text = suggestion;
@@ -1801,21 +1761,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Attendance Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: editAttendanceDateController,
@@ -1839,19 +1797,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                   ? 'Please select a Attendance date'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Shift",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: typeAheadEditShiftController,
@@ -1866,8 +1824,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return shiftDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -1900,14 +1858,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -1920,19 +1876,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: editCheckInDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             editCheckInDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -1951,7 +1907,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1962,8 +1918,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editCheckInHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -1978,21 +1934,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               editCheckInHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               editCheckInHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -2005,7 +1961,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2018,19 +1974,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: editCheckOutDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             editCheckOutDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -2049,7 +2005,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2060,8 +2016,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editCheckOutHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -2076,21 +2032,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               editCheckOutHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               editCheckOutHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -2103,7 +2059,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2116,8 +2072,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editWorkedHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -2140,7 +2096,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2151,8 +2107,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: editMinimumHourController,
                                       keyboardType: TextInputType.datetime,
@@ -2204,29 +2160,29 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                 "employee_id": selectedEditEmployeeId ??
                                     record['employee_id'].toString(),
                                 "attendance_date":
-                                    editAttendanceDateController.text,
+                                editAttendanceDateController.text,
                                 'shift_id': selectedEditShiftId ??
                                     record['shift_id'].toString(),
                                 'attendance_clock_in_date':
-                                    editCheckInDateController.text.isEmpty
-                                        ? record['attendance_clock_in_date']
-                                        : editCheckInDateController.text,
+                                editCheckInDateController.text.isEmpty
+                                    ? record['attendance_clock_in_date']
+                                    : editCheckInDateController.text,
                                 'attendance_clock_in':
-                                    editCheckInHoursSpent.isEmpty
-                                        ? record['attendance_clock_in']
-                                        : editCheckInHoursSpent,
+                                editCheckInHoursSpent.isEmpty
+                                    ? record['attendance_clock_in']
+                                    : editCheckInHoursSpent,
                                 'attendance_clock_out_date':
-                                    editCheckOutDateController.text.isEmpty
-                                        ? record['attendance_clock_out_date']
-                                        : editCheckOutDateController.text,
+                                editCheckOutDateController.text.isEmpty
+                                    ? record['attendance_clock_out_date']
+                                    : editCheckOutDateController.text,
                                 'attendance_clock_out':
-                                    editCheckOutHoursSpent.isEmpty
-                                        ? record['attendance_clock_out']
-                                        : editCheckOutHoursSpent,
+                                editCheckOutHoursSpent.isEmpty
+                                    ? record['attendance_clock_out']
+                                    : editCheckOutHoursSpent,
                                 'attendance_worked_hour':
-                                    editWorkHoursSpent.isEmpty
-                                        ? record['attendance_worked_hour']
-                                        : editWorkHoursSpent,
+                                editWorkHoursSpent.isEmpty
+                                    ? record['attendance_worked_hour']
+                                    : editWorkHoursSpent,
                                 'minimum_hour': editMinimumHoursSpent.isEmpty
                                     ? record['minimum_hour']
                                     : editMinimumHoursSpent,
@@ -2249,9 +2205,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -2320,14 +2276,14 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadCreateController,
@@ -2345,8 +2301,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2380,21 +2336,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Attendance Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: attendanceDateController,
@@ -2419,19 +2373,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                   ? 'Please select a Attendance date'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Shift",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadCreateShiftController,
@@ -2449,8 +2403,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             suggestionsCallback: (pattern) {
                               return shiftDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -2484,14 +2438,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2504,19 +2456,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: checkInDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             checkInDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -2528,14 +2480,14 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         labelText: "Check-In Date",
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         errorText: _validateCheckInDate
                                             ? 'Please Choose Check-In Date'
                                             : null,
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -2543,7 +2495,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2554,8 +2506,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: checkInHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -2571,27 +2523,27 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         labelText: '00:00',
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         errorText: _validateCheckIn
                                             ? 'Please Choose a Check-In'
                                             : null,
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               checkInHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               checkInHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                             _validateCheckIn = false;
                                           },
@@ -2605,7 +2557,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2618,19 +2570,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: checkOutDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             checkOutDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -2645,11 +2597,11 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                             ? 'Please Choose a Check-Out Date'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -2657,7 +2609,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2668,8 +2620,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: checkoutHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -2685,27 +2637,27 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         labelText: '00:00',
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         errorText: _validateCheckOut
                                             ? 'Please Choose a Check-Out'
                                             : null,
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               checkoutHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               checkOutHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                             _validateCheckOut = false;
                                           },
@@ -2719,7 +2671,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -2732,8 +2684,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: workedHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -2749,11 +2701,11 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         labelText: '00:00',
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateWorkingHours
                                             ? 'Please add Working Hours'
                                             : null,
@@ -2764,7 +2716,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2775,8 +2727,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: minimumHourController,
                                       keyboardType: TextInputType.datetime,
@@ -2792,11 +2744,11 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       decoration: InputDecoration(
                                         labelText: '00:00',
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         errorText: _validateMinimumHours
                                             ? 'Please add Minimum Hours'
                                             : null,
@@ -2809,14 +2761,14 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.04),
+                              MediaQuery.of(context).size.height * 0.04),
                         ],
                       ),
                     ),
                   ),
                   actions: <Widget>[
                     SizedBox(
-                      width: double.infinity,
+                      width: double.infinity, // Make button width infinite
                       child: TextButton(
                         onPressed: () async {
                           if (isSaveClick == true) {
@@ -2969,39 +2921,39 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               });
                             } else {
                               String defaultAttendanceDate =
-                                  DateFormat('yyyy-MM-dd')
-                                      .format(DateTime.now());
+                              DateFormat('yyyy-MM-dd')
+                                  .format(DateTime.now());
                               String defaultCheckInDate =
-                                  DateFormat('yyyy-MM-dd')
-                                      .format(DateTime.now());
+                              DateFormat('yyyy-MM-dd')
+                                  .format(DateTime.now());
                               String defaultTime = '00:00';
                               Map<String, dynamic> createdDetails = {
                                 "employee_id": selectedEmployeeId ?? '',
                                 "attendance_date":
-                                    attendanceDateController.text.isNotEmpty
-                                        ? attendanceDateController.text
-                                        : defaultAttendanceDate,
+                                attendanceDateController.text.isNotEmpty
+                                    ? attendanceDateController.text
+                                    : defaultAttendanceDate,
                                 'shift_id': selectedShiftId ?? '',
                                 'attendance_clock_in_date':
-                                    checkInDateController.text.isNotEmpty
-                                        ? checkInDateController.text
-                                        : defaultCheckInDate,
+                                checkInDateController.text.isNotEmpty
+                                    ? checkInDateController.text
+                                    : defaultCheckInDate,
                                 'attendance_clock_in':
-                                    checkInHoursSpent.isNotEmpty
-                                        ? checkInHoursSpent
-                                        : defaultTime,
+                                checkInHoursSpent.isNotEmpty
+                                    ? checkInHoursSpent
+                                    : defaultTime,
                                 'attendance_clock_out_date':
-                                    checkOutDateController.text.isNotEmpty
-                                        ? checkOutDateController.text
-                                        : defaultCheckInDate,
+                                checkOutDateController.text.isNotEmpty
+                                    ? checkOutDateController.text
+                                    : defaultCheckInDate,
                                 'attendance_clock_out':
-                                    checkOutHoursSpent.isNotEmpty
-                                        ? checkOutHoursSpent
-                                        : defaultTime,
+                                checkOutHoursSpent.isNotEmpty
+                                    ? checkOutHoursSpent
+                                    : defaultTime,
                                 'attendance_worked_hour':
-                                    workHoursSpent.isNotEmpty
-                                        ? workHoursSpent
-                                        : defaultTime,
+                                workHoursSpent.isNotEmpty
+                                    ? workHoursSpent
+                                    : defaultTime,
                                 'minimum_hour': minimumHoursSpent.isNotEmpty
                                     ? minimumHoursSpent
                                     : defaultTime,
@@ -3023,9 +2975,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -3059,17 +3011,17 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         appBar: AppBar(
           backgroundColor: Colors.white,
           leading: IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu), // Menu icon
             onPressed: () {
               _scaffoldKey.currentState?.openDrawer();
             },
           ),
           title: const Text('Attendance',
               style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           actions: [
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0), // Adjust the value as needed
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -3122,119 +3074,158 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         ),
         body: isLoading ? _buildLoadingWidget() : _buildEmployeeDetailsWidget(),
         drawer: Drawer(
-          child: ListView(
-            padding: const EdgeInsets.all(0),
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Image.asset('Assets/horilla-logo.png'),
-                  ),
-                ),
-              ),
-              permissionOverview
-                  ? ListTile(
+          child: FutureBuilder<void>(
+            future: permissionChecks(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error loading permissions.'));
+              } else {
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    permissionOverview
+                        ? ListTile(
                       title: const Text('Overview'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_overview');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionAttendance
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+                    permissionAttendance
+                        ? ListTile(
                       title: const Text('Attendance'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_attendance');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionAttendanceRequest
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+                    permissionAttendanceRequest
+                        ? ListTile(
                       title: const Text('Attendance Request'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_request');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionHourAccount
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+                    permissionHourAccount
+                        ? ListTile(
                       title: const Text('Hour Account'),
                       onTap: () {
                         Navigator.pushNamed(context, '/employee_hour_account');
                       },
                     )
-                  : const SizedBox.shrink(),
-            ],
+                        : const SizedBox.shrink(),
+                  ],
+                );
+              }
+            },
           ),
         ),
         bottomNavigationBar: (bottomBarPages.length <= maxCount)
             ? AnimatedNotchBottomBar(
-                notchBottomBarController: _controller,
-                color: Colors.red,
-                showLabel: true,
-                notchColor: Colors.red,
-                kBottomRadius: 28.0,
-                kIconSize: 24.0,
-                removeMargins: false,
-                bottomBarWidth: MediaQuery.of(context).size.width * 1,
-                durationInMilliSeconds: 300,
-                bottomBarItems: const [
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-                onTap: (index) async {
-                  switch (index) {
-                    case 0:
-                      Navigator.pushNamed(context, '/home');
-                      break;
-                    case 1:
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                      break;
-                    case 2:
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                      break;
-                  }
-                },
-              )
+          /// Provide NotchBottomBarController
+          notchBottomBarController: _controller,
+          color: Colors.red,
+          showLabel: true,
+          notchColor: Colors.red,
+          kBottomRadius: 28.0,
+          kIconSize: 24.0,
+
+          /// restart app if you change removeMargins
+          removeMargins: false,
+          bottomBarWidth: MediaQuery.of(context).size.width * 1,
+          durationInMilliSeconds: 300,
+          bottomBarItems: const [
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+              // itemLabel: 'Profile',
+            ),
+          ],
+
+          onTap: (index) async {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/home');
+                break;
+              case 1:
+                Navigator.pushNamed(
+                    context, '/employee_checkin_checkout');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/employees_form',
+                    arguments: arguments);
+                break;
+            }
+          },
+        )
             : null,
       ),
+      // ),
     );
   }
-
   Widget shimmerListTile() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -3287,8 +3278,10 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         ),
         SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         TabBar(
+          // TabBar for tab selection
           labelColor: Colors.red,
           indicatorColor: Colors.red,
+
           unselectedLabelColor: Colors.grey,
           isScrollable: true,
           tabs: [
@@ -3339,17 +3332,17 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             }
                             _debounce =
                                 Timer(const Duration(milliseconds: 1000), () {
-                              setState(() {
-                                searchText = employeeSearchValue;
-                                requestsNonValidAttendance.clear();
-                                requestsValidatedAttendance.clear();
-                                requestsOvertimeAttendance.clear();
-                                currentPage = 0;
-                                getAllNonValidatedAttendance();
-                                getAllOvertimeAttendance();
-                                getAllValidatedAttendance();
-                              });
-                            });
+                                  setState(() {
+                                    searchText = employeeSearchValue;
+                                    requestsNonValidAttendance.clear();
+                                    requestsValidatedAttendance.clear();
+                                    requestsOvertimeAttendance.clear();
+                                    currentPage = 0;
+                                    getAllNonValidatedAttendance();
+                                    getAllOvertimeAttendance();
+                                    getAllValidatedAttendance();
+                                  });
+                                });
                           },
                           decoration: InputDecoration(
                             hintStyle: TextStyle(
@@ -3362,7 +3355,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             filled: true,
                             fillColor: Colors.grey[100],
                             prefixIcon: Transform.scale(
-                              scale: 0.8,
+                              scale: 0.8, // Scale down the icon
                               child: Icon(Icons.search,
                                   color: Colors.blueGrey.shade300),
                             ),
@@ -3395,91 +3388,91 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                 children: [
                   toValidate == 0
                       ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_outlined,
-                                  color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  "There are no attendance records to display",
-                                  style: TextStyle(
-                                      fontSize: 16.0,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_outlined,
+                            color: Colors.black,
+                            size: 92,
                           ),
-                        )
+                          SizedBox(height: 20),
+                          Text(
+                            "There are no attendance records to display",
+                            style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                       : buildValidateAttendanceContent(
-                          requestsNonValidAttendance,
-                          _scrollController,
-                          searchText),
+                      requestsNonValidAttendance,
+                      _scrollController,
+                      searchText),
                   overtime == 0
                       ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_outlined,
-                                  color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  "There are no attendance records to display",
-                                  style: TextStyle(
-                                      fontSize: 16.0,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_outlined,
+                            color: Colors.black,
+                            size: 92,
                           ),
-                        )
+                          SizedBox(height: 20),
+                          Text(
+                            "There are no attendance records to display",
+                            style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                       : buildOvertimeAttendanceContent(
-                          requestsOvertimeAttendance,
-                          _scrollController,
-                          searchText),
+                      requestsOvertimeAttendance,
+                      _scrollController,
+                      searchText),
                   validated == 0
                       ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_outlined,
-                                  color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  "There are no attendance records to display",
-                                  style: TextStyle(
-                                      fontSize: 16.0,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_outlined,
+                            color: Colors.black,
+                            size: 92,
                           ),
-                        )
+                          SizedBox(height: 20),
+                          Text(
+                            "There are no attendance records to display",
+                            style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                       : buildValidatedAttendanceContent(
-                          requestsValidatedAttendance,
-                          _scrollController,
-                          searchText),
+                      requestsValidatedAttendance,
+                      _scrollController,
+                      searchText),
                 ],
               ),
             ),
@@ -3807,325 +3800,307 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return AlertDialog(
-                  backgroundColor: Colors.white,
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(" "),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.grey),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(" "),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  content: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.95,
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
+                ],
+              ),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.95,
+                height: MediaQuery.of(context).size.height * 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            width: 40.0,
+                            height: 40.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border:
+                              Border.all(color: Colors.grey, width: 1.0),
+                            ),
+                            child: Stack(
+                              children: [
+                                if (record['employee_profile_url'] != null &&
+                                    record['employee_profile_url'].isNotEmpty)
+                                  Positioned.fill(
+                                    child: ClipOval(
+                                      child: Image.network(
+                                        baseUrl +
+                                            record['employee_profile_url'],
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (BuildContext context,
+                                            Object exception,
+                                            StackTrace? stackTrace) {
+                                          return const Icon(Icons.person,
+                                              color: Colors.grey);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                if (record['employee_profile_url'] == null ||
+                                    record['employee_profile_url'].isEmpty)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey[400],
+                                      ),
+                                      child: const Icon(Icons.person),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.01),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fullName ?? '',
+                                  style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold),
+                                  maxLines: 2,
+                                ),
+                                Text(
+                                  record['badge_id'] != null
+                                      ? '${record['badge_id']}'
+                                      : '',
+                                  style: const TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.normal),
+                                ),
+                              ],
+                            ),
+                          ),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Container(
-                                width: 40.0,
-                                height: 40.0,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.grey, width: 1.0),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    if (record['employee_profile_url'] !=
-                                            null &&
-                                        record['employee_profile_url']
-                                            .isNotEmpty)
-                                      Positioned.fill(
-                                        child: ClipOval(
-                                          child: Image.network(
-                                            baseUrl +
-                                                record['employee_profile_url'],
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (BuildContext context,
-                                                Object exception,
-                                                StackTrace? stackTrace) {
-                                              return const Icon(Icons.person,
-                                                  color: Colors.grey);
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    if (record['employee_profile_url'] ==
-                                            null ||
-                                        record['employee_profile_url'].isEmpty)
-                                      Positioned.fill(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.grey[400],
-                                          ),
-                                          child: const Icon(Icons.person),
-                                        ),
-                                      ),
-                                  ],
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(4.0),
                                 ),
                               ),
                               SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.01),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      fullName ?? '',
-                                      style: const TextStyle(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.bold),
-                                      maxLines: 2,
-                                    ),
-                                    Text(
-                                      record['badge_id'] != null
-                                          ? '${record['badge_id']}'
-                                          : '',
-                                      style: const TextStyle(
-                                          fontSize: 12.0,
-                                          fontWeight: FontWeight.normal),
-                                    ),
-                                  ],
+                                  width: MediaQuery.of(context).size.width *
+                                      0.008),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(4.0),
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(4.0),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.008),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(4.0),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Date',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text('${record['attendance_date'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-In',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text(
-                                  '${record['attendance_clock_in'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-Out',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text(
-                                  '${record['attendance_clock_out'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Shift',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text('${record['shift_name'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Minimum Hour',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text('${record['minimum_hour'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-In Date',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text(
-                                  '${record['attendance_clock_in_date'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-Out Date',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text(
-                                  '${record['attendance_clock_out_date'] ?? 'None'}'),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'At Work',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              Text(
-                                  '${record['attendance_worked_hour'] ?? 'None'}'),
-                            ],
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
                         ],
                       ),
-                    ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Date',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['attendance_date'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Check-In',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['attendance_clock_in'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Check-Out',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['attendance_clock_out'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Shift',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['shift_name'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Minimum Hour',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['minimum_hour'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Check-In Date',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text(
+                              '${record['attendance_clock_in_date'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Check-Out Date',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text(
+                              '${record['attendance_clock_out_date'] ?? 'None'}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'At Work',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text('${record['attendance_worked_hour'] ?? 'None'}'),
+                        ],
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.01),
+                    ],
                   ),
-                  actions: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          isSaveClick = true;
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                backgroundColor: Colors.white,
-                                title: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "Confirmation",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () {
-                                        Navigator.of(context).pop(true);
-                                      },
-                                    ),
-                                  ],
+                ),
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      isSaveClick = true;
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Colors.white,
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Confirmation",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
                                 ),
-                                content: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  child: const Center(
-                                    child: Text(
-                                      "Are you sure you want to Validate this Attendance?",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontSize: 17,
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                ),
+                              ],
+                            ),
+                            content: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              child: const Center(
+                                child: Text(
+                                  "Are you sure you want to Validate this Attendance?",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 17,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            actions: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                   if (isSaveClick == true) {
+                                     isSaveClick = false;
+                                     Map<String, dynamic> validatedDetails = {
+                                       "id": record['id'],
+                                     };
+                                     await validateAttendance(validatedDetails);
+                                     Navigator.of(context).pop();
+                                     Navigator.of(context).pop();
+                                     showValidateAnimation();
+                                   }
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.green),
+                                    shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(8.0),
                                       ),
                                     ),
                                   ),
-                                ),
-                                actions: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        if (isSaveClick == true) {
-                                          isSaveClick = false;
-                                          Map<String, dynamic>
-                                              validatedDetails = {
-                                            "id": record['id'],
-                                          };
-                                          await validateAttendance(
-                                              validatedDetails);
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                          showValidateAnimation();
-                                        }
-                                      },
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.green),
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        "Continue",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
+                                  child: const Text(
+                                    "Continue",
+                                    style: TextStyle(color: Colors.white),
                                   ),
-                                ],
-                              );
-                            },
+                                ),
+                              ),
+                            ],
                           );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal:
-                                MediaQuery.of(context).size.width * 0.20,
-                            vertical:
-                                MediaQuery.of(context).size.height * 0.001,
-                          ),
-                        ),
-                        child: const Text(
-                          "Validate",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      // Red color for assign button
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.20,
+                        vertical: MediaQuery.of(context).size.height * 0.001,
                       ),
                     ),
-                  ],
-                );
-              },
+                    child: const Text(
+                      "Validate",
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         );
@@ -4168,7 +4143,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                         height: 40.0,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey, width: 1.0),
+                          border: Border.all(
+                              color: Colors.grey,
+                              width: 1.0), // Optional border
                         ),
                         child: Stack(
                           children: [
@@ -4183,7 +4160,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                         Object exception,
                                         StackTrace? stackTrace) {
                                       return const Icon(Icons.person,
-                                          color: Colors.grey);
+                                          color: Colors.grey); // Fallback icon
                                     },
                                   ),
                                 ),
@@ -4226,186 +4203,187 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                       ),
                       managerCheck != null
                           ? Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(15.0),
-                                      bottomLeft: Radius.circular(15.0),
-                                    ),
-                                    color: Colors.blue[100],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 0.0),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        size: 18.0,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          isSaveClick = true;
-                                          _errorMessage = null;
-                                          isAction = false;
-                                        });
-                                        _showValidateAttendance(
-                                            context, record);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(
-                                      topRight: Radius.circular(15.0),
-                                      bottomRight: Radius.circular(15.0),
-                                    ),
-                                    color: Colors.red[100],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 0.0),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        size: 18.0,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () async {
-                                        isSaveClick = true;
-                                        await showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              backgroundColor: Colors.white,
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Confirmation",
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  IconButton(
-                                                    icon:
-                                                        const Icon(Icons.close),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(true);
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                              content: SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.1,
-                                                child: const Center(
-                                                  child: Text(
-                                                    "Are you sure you want to delete this attendance?",
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                      fontSize: 17,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              actions: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (isSaveClick == true) {
-                                                        isSaveClick = false;
-                                                        Map<String, dynamic>
-                                                            deletedDetails = {
-                                                          'id': record['id'],
-                                                        };
-                                                        await deleteNonValidatedAttendance(
-                                                            deletedDetails);
-                                                        Navigator.of(context)
-                                                            .pop(true);
-                                                        showDeleteAnimation();
-                                                      }
-                                                    },
-                                                    style: ButtonStyle(
-                                                      backgroundColor:
-                                                          MaterialStateProperty
-                                                              .all<Color>(
-                                                                  Colors.red),
-                                                      shape: MaterialStateProperty
-                                                          .all<
-                                                              RoundedRectangleBorder>(
-                                                        RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                      "Continue",
-                                                      style: TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(15.0),
-                                      bottomLeft: Radius.circular(15.0),
-                                    ),
-                                    color: Colors.blue[100],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 0.0),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        size: 18.0,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          isSaveClick = true;
-                                          _errorMessage = null;
-                                          isAction = false;
-                                        });
-                                        _showValidateAttendance(
-                                            context, record);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(15.0),
+                                bottomLeft: Radius.circular(15.0),
+                              ),
+                              color: Colors.blue[100],
                             ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  size: 18.0,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isSaveClick = true;
+                                    _errorMessage = null;
+                                    isAction = false;
+                                  });
+                                  _showValidateAttendance(
+                                      context, record);
+                                },
+                              ),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(15.0),
+                                bottomRight: Radius.circular(15.0),
+                              ),
+                              color: Colors.red[100],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  size: 18.0,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () async {
+                                  isSaveClick = true;
+                                  await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor: Colors.white,
+                                        title: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Confirmation",
+                                              style: TextStyle(
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon:
+                                              const Icon(Icons.close),
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(true);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        content: SizedBox(
+                                          height: MediaQuery.of(context)
+                                              .size
+                                              .height *
+                                              0.1,
+                                          child: const Center(
+                                            child: Text(
+                                              "Are you sure you want to delete this attendance?",
+                                              style: TextStyle(
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 17,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                if (isSaveClick == true) {
+                                                  isSaveClick = false;
+                                                  Map<String, dynamic>
+                                                  deletedDetails = {
+                                                    'id': record['id'],
+                                                  };
+                                                  await deleteNonValidatedAttendance(
+                                                      deletedDetails);
+                                                  Navigator.of(context)
+                                                      .pop(true);
+                                                  showDeleteAnimation();
+                                                }
+                                              },
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                MaterialStateProperty
+                                                    .all<Color>(
+                                                    Colors.red),
+                                                shape: MaterialStateProperty
+                                                    .all<
+                                                    RoundedRectangleBorder>(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius
+                                                        .circular(
+                                                        8.0),
+                                                  ),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                "Continue",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                          : Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(15.0),
+                                bottomLeft: Radius.circular(15.0),
+                              ),
+                              color: Colors.blue[
+                              100], // Blue background for edit icon
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  size: 18.0, // Reduce icon size
+                                  color: Colors.blue, // Set icon color
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isSaveClick = true;
+                                    _errorMessage = null;
+                                    isAction = false;
+                                  });
+                                  _showValidateAttendance(
+                                      context, record);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.005),
@@ -4453,7 +4431,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                 backgroundColor: Colors.white,
                                 title: Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       "Confirmation",
@@ -4464,14 +4442,15 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                     IconButton(
                                       icon: const Icon(Icons.close),
                                       onPressed: () {
-                                        Navigator.of(context).pop(true);
+                                        Navigator.of(context)
+                                            .pop(true); // Close the dialog
                                       },
                                     ),
                                   ],
                                 ),
                                 content: SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height * 0.1,
+                                  MediaQuery.of(context).size.height * 0.1,
                                   child: const Center(
                                     child: Text(
                                       "Are you sure you want to Validate this Attendance?",
@@ -4490,8 +4469,8 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       onPressed: () async {
                                         if (isSaveClick == true) {
                                           isSaveClick = false;
-                                          Map<String, dynamic>
-                                              validatedDetails = {
+                                          Map<String, dynamic> validatedDetails =
+                                          {
                                             "id": record['id'],
                                           };
                                           await validateAttendance(
@@ -4502,13 +4481,13 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                       },
                                       style: ButtonStyle(
                                         backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.green),
+                                        MaterialStateProperty.all<Color>(
+                                            Colors.green),
                                         shape: MaterialStateProperty.all<
                                             RoundedRectangleBorder>(
                                           RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            BorderRadius.circular(8.0),
                                           ),
                                         ),
                                       ),
@@ -4530,7 +4509,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                           ),
                           padding: EdgeInsets.symmetric(
                             horizontal:
-                                MediaQuery.of(context).size.width * 0.30,
+                            MediaQuery.of(context).size.width * 0.30,
                             vertical: MediaQuery.of(context).size.height * 0.01,
                           ),
                         ),
@@ -4589,7 +4568,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                             child: Stack(
                               children: [
@@ -4763,98 +4742,98 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                   width: double.infinity,
                   child: !record['attendance_overtime_approve']
                       ? ElevatedButton(
-                          onPressed: () async {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  backgroundColor: Colors.white,
-                                  title: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        "Confirmation",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close),
-                                        onPressed: () {
-                                          Navigator.of(context).pop(true);
-                                        },
-                                      ),
-                                    ],
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Colors.white,
+                            title: Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Confirmation",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                ),
+                              ],
+                            ),
+                            content: SizedBox(
+                              height: MediaQuery.of(context).size.height *
+                                  0.1,
+                              child: const Center(
+                                child: Text(
+                                  'Are you sure you want to Validate this Attendance?',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 17,
                                   ),
-                                  content: SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.1,
-                                    child: const Center(
-                                      child: Text(
-                                        'Are you sure you want to Validate this Attendance?',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontSize: 17,
-                                        ),
+                                ),
+                              ),
+                            ),
+                            actions: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    Map<String, dynamic>
+                                    validatedDetails = {
+                                      "id": record['id'],
+                                    };
+                                    await validateOverTime(
+                                        validatedDetails);
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                    showValidateAnimation();
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.green),
+                                    shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(6.0),
                                       ),
                                     ),
                                   ),
-                                  actions: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          Map<String, dynamic>
-                                              validatedDetails = {
-                                            "id": record['id'],
-                                          };
-                                          await validateOverTime(
-                                              validatedDetails);
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                          showValidateAnimation();
-                                        },
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  Colors.green),
-                                          shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(6.0),
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text('Validate',
-                                            style:
-                                                TextStyle(color: Colors.white)),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  MediaQuery.of(context).size.width * 0.20,
-                              vertical:
-                                  MediaQuery.of(context).size.height * 0.001,
-                            ),
-                          ),
-                          child: const Text(
-                            "Validate",
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        )
+                                  child: const Text('Validate',
+                                      style:
+                                      TextStyle(color: Colors.white)),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal:
+                        MediaQuery.of(context).size.width * 0.20,
+                        vertical:
+                        MediaQuery.of(context).size.height * 0.001,
+                      ),
+                    ),
+                    child: const Text(
+                      "Validate",
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  )
                       : const SizedBox.shrink(),
                 ),
               ],
@@ -4885,7 +4864,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
               borderRadius: BorderRadius.circular(10.0),
             ),
             color: Colors.white,
-            elevation: 0.1,
+            elevation: 0.1, //
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -4971,7 +4950,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.edit,
@@ -5003,12 +4982,12 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.delete,
-                                    size: 18.0,
-                                    color: Colors.red,
+                                    size: 18.0, // Reduce icon size
+                                    color: Colors.red, // Set icon color
                                   ),
                                   onPressed: () async {
                                     isSaveClick = true;
@@ -5019,7 +4998,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                           backgroundColor: Colors.white,
                                           title: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                             children: [
                                               const Text(
                                                 "Confirmation",
@@ -5031,16 +5010,16 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                               IconButton(
                                                 icon: const Icon(Icons.close),
                                                 onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(true);
+                                                  Navigator.of(context).pop(
+                                                      true); // Close the dialog
                                                 },
                                               ),
                                             ],
                                           ),
                                           content: SizedBox(
                                             height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                                .size
+                                                .height *
                                                 0.1,
                                             child: const Center(
                                               child: Text(
@@ -5061,7 +5040,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                                   if (isSaveClick == true) {
                                                     isSaveClick = false;
                                                     Map<String, dynamic>
-                                                        deletedDetails = {
+                                                    deletedDetails = {
                                                       'id': record['id'],
                                                     };
                                                     await deleteAttendance(
@@ -5073,15 +5052,15 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                                 },
                                                 style: ButtonStyle(
                                                   backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(Colors.red),
+                                                  MaterialStateProperty.all<
+                                                      Color>(Colors.red),
                                                   shape:
-                                                      MaterialStateProperty.all<
-                                                          RoundedRectangleBorder>(
+                                                  MaterialStateProperty.all<
+                                                      RoundedRectangleBorder>(
                                                     RoundedRectangleBorder(
                                                       borderRadius:
-                                                          BorderRadius.circular(
-                                                              8.0),
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                     ),
                                                   ),
                                                 ),
@@ -5139,6 +5118,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                   SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   Visibility(
                     visible: !record['attendance_overtime_approve'],
+                    // Hide if attendance is validated
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -5152,7 +5132,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                   backgroundColor: Colors.white,
                                   title: Row(
                                     mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text(
                                         "Confirmation",
@@ -5190,7 +5170,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                           if (isSaveClick == true) {
                                             isSaveClick = false;
                                             Map<String, dynamic>
-                                                validatedDetails = {
+                                            validatedDetails = {
                                               "id": record['id'],
                                             };
                                             await validateOverTime(
@@ -5201,19 +5181,19 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                                         },
                                         style: ButtonStyle(
                                           backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  Colors.green),
+                                          MaterialStateProperty.all<Color>(
+                                              Colors.green),
                                           shape: MaterialStateProperty.all<
                                               RoundedRectangleBorder>(
                                             RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(6.0),
+                                              BorderRadius.circular(6.0),
                                             ),
                                           ),
                                         ),
                                         child: const Text('Continue',
                                             style:
-                                                TextStyle(color: Colors.white)),
+                                            TextStyle(color: Colors.white)),
                                       ),
                                     ),
                                   ],
@@ -5228,9 +5208,9 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             ),
                             padding: EdgeInsets.symmetric(
                               horizontal:
-                                  MediaQuery.of(context).size.width * 0.30,
+                              MediaQuery.of(context).size.width * 0.30,
                               vertical:
-                                  MediaQuery.of(context).size.height * 0.01,
+                              MediaQuery.of(context).size.height * 0.01,
                             ),
                           ),
                           child: const Text(
@@ -5289,7 +5269,7 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                             child: Stack(
                               children: [

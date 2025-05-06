@@ -28,9 +28,6 @@ class _LeaveTypes extends State<LeaveTypes> {
   bool permissionLeaveAllocationCheck = false;
   late String baseUrl = '';
   late Map<String, dynamic> arguments;
-  bool hasPermissionLeaveTypeCheckExecuted = false;
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void dispose() {
@@ -38,6 +35,7 @@ class _LeaveTypes extends State<LeaveTypes> {
     super.dispose();
   }
 
+  /// widget list
   final List<Widget> bottomBarPages = [
     const Home(),
     const Overview(),
@@ -52,24 +50,13 @@ class _LeaveTypes extends State<LeaveTypes> {
     prefetchData();
   }
 
-  /// Checks and updates permission statuses for leave management.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
-    if (!hasPermissionLeaveTypeCheckExecuted) {
-      await permissionLeaveTypeChecks();
-      hasPermissionLeaveTypeCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
+    await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      await permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Verifies leave overview permissions by making an API call.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -89,7 +76,6 @@ class _LeaveTypes extends State<LeaveTypes> {
     }
   }
 
-  /// Verifies leave type permissions by making an API call.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -109,7 +95,6 @@ class _LeaveTypes extends State<LeaveTypes> {
     }
   }
 
-  /// Verifies leave request permissions by making an API call.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -129,7 +114,6 @@ class _LeaveTypes extends State<LeaveTypes> {
     }
   }
 
-  /// Verifies leave assignment permissions by making an API call.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -149,7 +133,6 @@ class _LeaveTypes extends State<LeaveTypes> {
     }
   }
 
-  /// Retrieves and stores information such as employee details, contact information,and work info for later use.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -164,35 +147,32 @@ class _LeaveTypes extends State<LeaveTypes> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Retrieves the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -201,7 +181,6 @@ class _LeaveTypes extends State<LeaveTypes> {
     });
   }
 
-  /// Fetches leave types from the server and updates the UI state.
   Future<void> getLeaveType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -252,52 +231,52 @@ class _LeaveTypes extends State<LeaveTypes> {
         child: Center(
           child: isLoading
               ? Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: ListView.builder(
-                    itemCount: 20,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        width: 40.0,
-                        height: 80.0,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                )
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: ListView.builder(
+              itemCount: 20,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Container(
+                  width: 40.0,
+                  height: 80.0,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          )
               : leaveTypeCount == 0
-                  ? const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            color: Colors.black,
-                            size: 92,
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            "There are no Leave type records to display",
-                            style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: leaveType.length,
-                      itemBuilder: (context, index) {
-                        final record = leaveType[index];
-                        if (record['name'] != null) {
-                          return buildListItem(context, baseUrl, record);
-                        } else {
-                          return Container();
-                        }
-                      },
-                    ),
+              ? const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.calendar_month_outlined,
+                  color: Colors.black,
+                  size: 92,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "There are no Leave type records to display",
+                  style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )
+              : ListView.builder(
+            itemCount: leaveType.length,
+            itemBuilder: (context, index) {
+              final record = leaveType[index];
+              if (record['name'] != null) {
+                return buildListItem(context, baseUrl, record);
+              } else {
+                return Container();
+              }
+            },
+          ),
         ),
       ),
       drawer: Drawer(
@@ -305,6 +284,7 @@ class _LeaveTypes extends State<LeaveTypes> {
           future: checkPermissions(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show shimmer effect while waiting
               return ListView(
                 padding: const EdgeInsets.all(0),
                 children: [
@@ -350,53 +330,59 @@ class _LeaveTypes extends State<LeaveTypes> {
                   ),
                   permissionLeaveOverviewCheck
                       ? ListTile(
-                          title: const Text('Overview'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_overview');
-                          },
-                        )
+                    title: const Text('Overview'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_overview');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionMyLeaveRequestCheck
                       ? ListTile(
-                          title: const Text('My Leave Request'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/my_leave_request');
-                          },
-                        )
+                    title: const Text('My Leave Request'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/my_leave_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveRequestCheck
                       ? ListTile(
-                          title: const Text('Leave Request'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_request');
-                          },
-                        )
+                    title: const Text('Leave Request'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveTypeCheck
                       ? ListTile(
-                          title: const Text('Leave Type'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/leave_types');
-                          },
-                        )
+                    title: const Text('Leave Type'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/leave_types');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveAllocationCheck
                       ? ListTile(
-                          title: const Text('Leave Allocation Request'),
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, '/leave_allocation_request');
-                          },
-                        )
+                    title: const Text('Leave Allocation Request'),
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, '/leave_allocation_request');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                   permissionLeaveAssignCheck
                       ? ListTile(
-                          title: const Text('All Assigned Leave'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/all_assigned_leave');
-                          },
-                        )
+                    title: const Text('All Assigned Leave'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/all_assigned_leave');
+                    },
+                  )
                       : const SizedBox.shrink(),
+
                 ],
               );
             }
@@ -405,62 +391,66 @@ class _LeaveTypes extends State<LeaveTypes> {
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }
@@ -508,7 +498,7 @@ Widget buildListItem(
         child: ListTile(
           tileColor: Colors.white,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           leading: Container(
             width: 40.0,
             height: 40.0,

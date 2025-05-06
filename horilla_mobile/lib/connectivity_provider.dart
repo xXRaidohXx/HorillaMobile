@@ -16,6 +16,11 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
   @override
   void initState() {
     super.initState();
+    // Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+    //   setState(() {
+    //     _isOffline = result == ConnectivityResult.none;
+    //   });
+    // });
   }
 
   @override

@@ -42,13 +42,10 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
   bool permissionLeaveOverviewCheck = false;
   bool permissionMyLeaveRequestCheck = false;
   bool permissionLeaveAllocationCheck = false;
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void initState() {
     super.initState();
-    checkPermissions();
     getSelectedLeaveType();
     getAllAssignedLeave();
     getAssignedLeaveType();
@@ -57,21 +54,13 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     prefetchData();
   }
 
-  /// Checks and updates the permissions for leave overview, type, request, and assignment.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
     await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      await permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Performs a check for leave overview permissions.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -91,7 +80,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Performs a check for leave type permissions.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -111,7 +99,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Performs a check for leave request permissions.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -131,7 +118,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Performs a check for leave assignment permissions.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -151,7 +137,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Displays an animation dialog to indicate leave assignment success.
   void showAssignAnimation() {
     String jsonContent = '''
 {
@@ -173,8 +158,7 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Assigned Successfully",
@@ -196,7 +180,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     });
   }
 
-  /// Prefetches employee data based on stored preferences.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -211,35 +194,32 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Prefetches employee data based on stored preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -248,7 +228,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     });
   }
 
-  /// Fetches all assigned leave details from the server.
   Future<void> getAllAssignedLeave() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -265,7 +244,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Assigns leave to a list of employee IDs.
   void assignLeaves(List<int> employeeIds) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -284,7 +262,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Assigns leave to selected employees with a given leave type.
   Future<void> assignLeave(
       List<dynamic> selectedEmployeeIds, String typeName) async {
     final prefs = await SharedPreferences.getInstance();
@@ -303,7 +280,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
         }));
   }
 
-  /// Fetches the list of employees from the server.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -333,7 +309,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Retrieves assigned leave types for the current user.
   Future<void> getAssignedLeaveType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -353,7 +328,6 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
     }
   }
 
-  /// Retrieves details of a selected leave type.
   Future<void> getSelectedLeaveType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -391,658 +365,709 @@ class _SelectedLeaveType extends State<SelectedLeaveType> {
         title: Text(
           '${typeDetails['name'] ?? args['selectedTypeName']}',
           style:
-              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(25.0),
         child: isLoading
             ? Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 15.0),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Container(
-                          width: double.infinity,
-                          height: 40,
-                          color: Colors.grey,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              )
-            : Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: SingleChildScrollView(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 15.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: ListView.builder(
+              itemCount: 10,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 15.0),
-                    width: MediaQuery.of(context).size.width * 0.95,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.04),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    width: double.infinity,
+                    height: 40,
+                    color: Colors.grey,
+                  ),
+                );
+              },
+            ),
+          ),
+        )
+            : Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              // color:Colors.white,
+              padding: const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 15.0),
+              width: MediaQuery.of(context).size.width * 0.95,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.04),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border:
+                          Border.all(color: Colors.grey, width: 1.0),
+                        ),
+                        child: Stack(
                           children: [
-                            Container(
-                              width: 40.0,
-                              height: 40.0,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.grey, width: 1.0),
+                            if (typeDetails['icon'] != null &&
+                                typeDetails['icon'].isNotEmpty)
+                              Positioned.fill(
+                                child: ClipOval(
+                                  child: Image.network(
+                                    baseUrl + typeDetails['icon'],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (BuildContext context,
+                                        Object exception,
+                                        StackTrace? stackTrace) {
+                                      return const Icon(
+                                          Icons.calendar_month_outlined,
+                                          color: Colors.grey);
+                                    },
+                                  ),
+                                ),
                               ),
-                              child: Stack(
-                                children: [
-                                  if (typeDetails['icon'] != null &&
-                                      typeDetails['icon'].isNotEmpty)
-                                    Positioned.fill(
-                                      child: ClipOval(
-                                        child: Image.network(
-                                          baseUrl + typeDetails['icon'],
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (BuildContext context,
-                                              Object exception,
-                                              StackTrace? stackTrace) {
-                                            return const Icon(
-                                                Icons.calendar_month_outlined,
-                                                color: Colors.grey);
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  if (typeDetails['icon'] == null ||
-                                      typeDetails['icon'].isEmpty)
-                                    Positioned.fill(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.grey[400],
-                                        ),
-                                        child: const Icon(
-                                            Icons.calendar_month_outlined),
-                                      ),
-                                    ),
-                                ],
+                            if (typeDetails['icon'] == null ||
+                                typeDetails['icon'].isEmpty)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey[400],
+                                  ),
+                                  child: const Icon(
+                                      Icons.calendar_month_outlined),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: Text(
-                                typeDetails['name'] ?? "Unknown",
-                                style: const TextStyle(
-                                    fontSize: 20.0,
-                                    fontWeight: FontWeight.bold),
-                                maxLines: 2,
-                              ),
-                            ),
                           ],
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.04),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Period In',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['period_in'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: Text(
+                          typeDetails['name'] ?? "Unknown",
+                          style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold),
+                          maxLines: 2,
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Count',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['count'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total Days',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['total_days'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Reset',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['reset'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Carryforward Type',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['carryforward_type'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Is Paid',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['payment'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Require Approval',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['require_approval'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Require Attachment',
-                              style:
-                                  TextStyle(fontSize: 16.0, color: Colors.grey),
-                            ),
-                            Text(
-                              '${typeDetails['require_attachment'] ?? "Unknown"}',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.00),
-                        const Divider(
-                          thickness: 0.0,
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Visibility(
-                              visible: employeeItems.isNotEmpty,
-                              child: Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    setState(() {
-                                      isAction = false;
-                                    });
-                                    setState(() {
-                                      selectedEmployeeNames.clear();
-                                    });
-                                    setState(() {});
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (BuildContext context) {
-                                        return StatefulBuilder(
-                                          builder: (context, setState) {
-                                            return Stack(
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.04),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Period In',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['period_in'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Count',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['count'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total Days',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['total_days'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Reset',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['reset'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Carryforward Type',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['carryforward_type'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Is Paid',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['payment'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Require Approval',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['require_approval'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Require Attachment',
+                        style:
+                        TextStyle(fontSize: 16.0, color: Colors.grey),
+                      ),
+                      Text(
+                        '${typeDetails['require_attachment'] ?? "Unknown"}',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.00),
+                  const Divider(
+                    thickness: 0.0,
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.05),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Visibility(
+                        visible: employeeItems.isNotEmpty,
+                        child: Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              setState(() {
+                                isAction =
+                                false; // Hide loading indicator
+                              });
+                              setState(() {
+                                selectedEmployeeNames.clear();
+                              });
+                              setState(() {});
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) {
+                                  return StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return Stack(
+                                        children: [
+                                          AlertDialog(
+                                            backgroundColor: Colors.white,
+                                            title: Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
                                               children: [
-                                                AlertDialog(
-                                                  backgroundColor: Colors.white,
-                                                  title: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      const Text(
-                                                        "Assign Leave",
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      IconButton(
-                                                        icon: const Icon(
-                                                            Icons.close,
-                                                            color: Colors.grey),
-                                                        onPressed: () {
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                      ),
-                                                    ],
+                                                const Text(
+                                                  "Assign Leave",
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: Colors.black,
                                                   ),
-                                                  content: Container(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.8,
-                                                    height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.3,
-                                                    constraints: BoxConstraints(
-                                                      maxHeight:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.8,
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.close,
+                                                      color: Colors.grey),
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            content: Container(
+                                              width:
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                                  0.8,
+                                              height:
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                                  0.3,
+                                              constraints: BoxConstraints(
+                                                maxHeight:
+                                                MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                    0.8,
+                                              ),
+                                              child:
+                                              SingleChildScrollView(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    const Text(
+                                                      "Employee\n",
+                                                      style: TextStyle(
+                                                          fontSize: 15.0),
                                                     ),
-                                                    child:
-                                                        SingleChildScrollView(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          const Text(
-                                                            "Employee\n",
-                                                            style: TextStyle(
-                                                                fontSize: 15.0),
-                                                          ),
-                                                          Wrap(
-                                                            spacing: 8.0,
-                                                            runSpacing: 8.0,
-                                                            children: [
-                                                              for (int i = 0;
-                                                                  i <
-                                                                      selectedEmployeeNames
-                                                                          .length;
-                                                                  i++)
-                                                                Chip(
-                                                                  label: Text(
-                                                                      selectedEmployeeNames[
-                                                                          i]),
-                                                                  onDeleted:
+                                                    Wrap(
+                                                      spacing: 8.0,
+                                                      runSpacing: 8.0,
+                                                      children: [
+                                                        for (int i = 0;
+                                                        i <
+                                                            selectedEmployeeNames
+                                                                .length;
+                                                        i++)
+                                                          Chip(
+                                                            label: Text(
+                                                                selectedEmployeeNames[
+                                                                i]),
+                                                            onDeleted:
+                                                                () {
+                                                              setState(
                                                                       () {
-                                                                    setState(
-                                                                        () {
-                                                                      selectedEmployeeNames
-                                                                          .removeAt(
-                                                                              i);
-                                                                      selectedEmployeeIds
-                                                                          .removeAt(
-                                                                              i);
-                                                                    });
-                                                                  },
-                                                                ),
-                                                            ],
-                                                          ),
-                                                          SizedBox(
-                                                              height: MediaQuery.of(
-                                                                          context)
-                                                                      .size
-                                                                      .height *
-                                                                  0.01),
-                                                          MultiSelectDropdown
-                                                              .simpleList(
-                                                            list: employeeItems,
-                                                            initiallySelected: const [],
-                                                            onChange:
-                                                                (selectedItems) {
-                                                              setState(() {
-                                                                selectedEmployeeNames
-                                                                    .clear();
-                                                                selectedEmployeeIds
-                                                                    .clear();
-                                                                if (selectedItems
-                                                                    .contains(
-                                                                        'Select All')) {
-                                                                  selectedEmployeeNames =
-                                                                      List.from(
-                                                                          employeeItems);
-                                                                  selectedEmployeeIds =
-                                                                      List.from(
-                                                                          employeeItemsId);
-                                                                  selectedEmployeeNames
-                                                                      .remove(
-                                                                          'Select All');
-                                                                } else {
-                                                                  for (var item
-                                                                      in selectedItems) {
                                                                     selectedEmployeeNames
-                                                                        .add(
-                                                                            item);
-                                                                    int index =
-                                                                        employeeItems
-                                                                            .indexOf(item);
-                                                                    if (index !=
-                                                                        -1) {
-                                                                      selectedEmployeeIds.add(
-                                                                          employeeItemsId[
-                                                                              index]);
-                                                                    }
-                                                                  }
-                                                                }
-                                                              });
+                                                                        .removeAt(
+                                                                        i);
+                                                                    selectedEmployeeIds
+                                                                        .removeAt(
+                                                                        i);
+                                                                  });
                                                             },
-                                                            includeSearch: true,
-                                                            includeSelectAll:
-                                                                true,
-                                                            isLarge: false,
-                                                            checkboxFillColor:
-                                                                Colors.grey,
-                                                            boxDecoration:
-                                                                BoxDecoration(
-                                                              border: Border.all(
-                                                                  color: Colors
-                                                                      .redAccent),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10),
-                                                            ),
                                                           ),
-                                                        ],
-                                                      ),
+                                                      ],
                                                     ),
-                                                  ),
-                                                  actions: [
                                                     SizedBox(
-                                                      width: double.infinity,
-                                                      child: ElevatedButton(
-                                                        onPressed: () async {
-                                                          setState(() {
-                                                            isAction = true;
-                                                          });
-                                                          await assignLeave(
-                                                              selectedEmployeeIds,
-                                                              typeName);
-                                                          setState(() {
-                                                            isAction = false;
-                                                          });
-                                                          getAssignedLeaveType();
-                                                          Navigator.of(context)
-                                                              .pop(true);
-                                                          showAssignAnimation();
-                                                        },
-                                                        style: ButtonStyle(
-                                                          backgroundColor:
-                                                              MaterialStateProperty
-                                                                  .all<Color>(
-                                                                      Colors
-                                                                          .green),
-                                                          shape: MaterialStateProperty
-                                                              .all<
-                                                                  RoundedRectangleBorder>(
-                                                            RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          6.0),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        child: const Text(
-                                                          'Assign',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
+                                                        height: MediaQuery.of(
+                                                            context)
+                                                            .size
+                                                            .height *
+                                                            0.01),
+                                                    MultiSelectDropdown
+                                                        .simpleList(
+                                                      list: employeeItems,
+                                                      initiallySelected: const [],
+                                                      onChange:
+                                                          (selectedItems) {
+                                                        setState(() {
+                                                          selectedEmployeeNames
+                                                              .clear();
+                                                          selectedEmployeeIds
+                                                              .clear();
+                                                          if (selectedItems
+                                                              .contains(
+                                                              'Select All')) {
+                                                            selectedEmployeeNames =
+                                                                List.from(
+                                                                    employeeItems);
+                                                            selectedEmployeeIds =
+                                                                List.from(
+                                                                    employeeItemsId);
+                                                            selectedEmployeeNames
+                                                                .remove(
+                                                                'Select All');
+                                                          } else {
+                                                            for (var item
+                                                            in selectedItems) {
+                                                              selectedEmployeeNames
+                                                                  .add(
+                                                                  item);
+                                                              int index =
+                                                              employeeItems
+                                                                  .indexOf(item);
+                                                              if (index !=
+                                                                  -1) {
+                                                                selectedEmployeeIds.add(
+                                                                    employeeItemsId[
+                                                                    index]);
+                                                              }
+                                                            }
+                                                          }
+                                                        });
+                                                      },
+                                                      includeSearch: true,
+                                                      includeSelectAll:
+                                                      true,
+                                                      isLarge: false,
+                                                      checkboxFillColor:
+                                                      Colors.grey,
+                                                      boxDecoration:
+                                                      BoxDecoration(
+                                                        border: Border.all(
+                                                            color: Colors
+                                                                .redAccent),
+                                                        borderRadius:
+                                                        BorderRadius
+                                                            .circular(
+                                                            10),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
-                                                if (isAction)
-                                                  const Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                            actions: [
+                                              SizedBox(
+                                                width: double.infinity,
+                                                child: ElevatedButton(
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      isAction = true;
+                                                    });
+                                                    await assignLeave(
+                                                        selectedEmployeeIds,
+                                                        typeName);
+                                                    setState(() {
+                                                      isAction = false;
+                                                    });
+                                                    getAssignedLeaveType();
+                                                    Navigator.of(context)
+                                                        .pop(true);
+                                                    showAssignAnimation();
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor:
+                                                    MaterialStateProperty
+                                                        .all<Color>(
+                                                        Colors
+                                                            .green),
+                                                    shape: MaterialStateProperty
+                                                        .all<
+                                                        RoundedRectangleBorder>(
+                                                      RoundedRectangleBorder(
+                                                        borderRadius:
+                                                        BorderRadius
+                                                            .circular(
+                                                            6.0),
+                                                      ),
+                                                    ),
                                                   ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 50, vertical: 12),
-                                  ),
-                                  child: const Text(
-                                    'Assign',
-                                    style: TextStyle(
-                                        fontSize: 18, color: Colors.white),
-                                  ),
-                                ),
+                                                  child: const Text(
+                                                    'Assign',
+                                                    style: TextStyle(
+                                                        color:
+                                                        Colors.white),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (isAction)
+                                            const Center(
+                                              child:
+                                              CircularProgressIndicator(),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 50, vertical: 12),
                             ),
-                          ],
+                            child: const Text(
+                              'Assign',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.white),
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: const EdgeInsets.all(0),
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(),
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Image.asset('Assets/horilla-logo.png'),
-                ),
+                ],
               ),
             ),
-            permissionLeaveOverviewCheck
-                ? ListTile(
+          ),
+        ),
+      ),
+      drawer: Drawer(
+        child: FutureBuilder<void>(
+          future: checkPermissions(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show shimmer effect while waiting
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                ],
+              );
+            } else if (snapshot.hasError) {
+              // Handle errors here if needed
+              return const Center(child: Text('Error loading permissions.'));
+            } else {
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  permissionLeaveOverviewCheck
+                      ? ListTile(
                     title: const Text('Overview'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_overview');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionMyLeaveRequestCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionMyLeaveRequestCheck
+                      ? ListTile(
                     title: const Text('My Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/my_leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveRequestCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveRequestCheck
+                      ? ListTile(
                     title: const Text('Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveTypeCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveTypeCheck
+                      ? ListTile(
                     title: const Text('Leave Type'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_types');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAllocationCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAllocationCheck
+                      ? ListTile(
                     title: const Text('Leave Allocation Request'),
                     onTap: () {
-                      Navigator.pushNamed(context, '/leave_allocation_request');
+                      Navigator.pushNamed(
+                          context, '/leave_allocation_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAssignCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAssignCheck
+                      ? ListTile(
                     title: const Text('All Assigned Leave'),
                     onTap: () {
                       Navigator.pushNamed(context, '/all_assigned_leave');
                     },
                   )
-                : const SizedBox.shrink(),
-          ],
+                      : const SizedBox.shrink(),
+
+                ],
+              );
+            }
+          },
         ),
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 50,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 50,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }

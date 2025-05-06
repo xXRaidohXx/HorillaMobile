@@ -36,17 +36,15 @@ class _NotificationsListState extends State<NotificationsList> {
     super.dispose();
   }
 
-  /// Scroll listener that triggers when the user reaches the end of the scrollable list.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       fetchNotifications();
     }
   }
 
-  /// Prefetches data related to the employee by fetching it from the server.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -60,36 +58,36 @@ class _NotificationsListState extends State<NotificationsList> {
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
-      arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
-            ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
-      };
+      setState(() {
+        arguments = {
+          'employee_id': responseData['id'],
+          'employee_name': responseData['employee_first_name'] +
+              ' ' +
+              responseData['employee_last_name'],
+          'badge_id': responseData['badge_id'],
+          'email': responseData['email'],
+          'phone': responseData['phone'],
+          'date_of_birth': responseData['dob'],
+          'gender': responseData['gender'],
+          'address': responseData['address'],
+          'country': responseData['country'],
+          'state': responseData['state'],
+          'city': responseData['city'],
+          'qualification': responseData['qualification'],
+          'experience': responseData['experience'],
+          'marital_status': responseData['marital_status'],
+          'children': responseData['children'],
+          'emergency_contact': responseData['emergency_contact'],
+          'emergency_contact_name': responseData['emergency_contact_name'],
+          'employee_work_info_id': responseData['employee_work_info_id'],
+          'employee_bank_details_id': responseData['employee_bank_details_id'],
+          'employee_profile': responseData['employee_profile'],
+          'job_position_name': responseData['job_position_name']
+        };
+      });
     }
   }
 
-  /// Fetches notifications from the server and updates the list of notifications.
   Future<void> fetchNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -129,7 +127,7 @@ class _NotificationsListState extends State<NotificationsList> {
     } else {
       currentPage = 1;
       var uri =
-          Uri.parse('$typedServerUrl/api/notifications/notifications/list/all');
+      Uri.parse('$typedServerUrl/api/notifications/notifications/list/all');
       var response = await http.get(uri, headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -160,7 +158,6 @@ class _NotificationsListState extends State<NotificationsList> {
     }
   }
 
-  /// Clears all notifications by sending a delete request to the server.
   Future<void> clearAllNotification() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -179,7 +176,6 @@ class _NotificationsListState extends State<NotificationsList> {
     }
   }
 
-  /// Deletes a specific notification by its ID.
   Future<void> deleteIndividualNotification(int notificationId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -204,11 +200,13 @@ class _NotificationsListState extends State<NotificationsList> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title:
-            const Text('Notifications', style: TextStyle(color: Colors.black)),
+        const Text('Notifications', style: TextStyle(color: Colors.black)),
         automaticallyImplyLeading: false,
         actions: [
           Padding(
+            // padding: const EdgeInsets.all(8.0),
             padding: const EdgeInsets.all(12.0),
+
             child: ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -237,89 +235,90 @@ class _NotificationsListState extends State<NotificationsList> {
         child: Center(
           child: isLoading
               ? Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: ListView.builder(
-                    itemCount: 20,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: ListView.builder(
+              itemCount: 20,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.05,
+                        height: MediaQuery.of(context).size.height * 0.02,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.0),
+                          color: Colors.grey[300]!,
+                          shape: BoxShape.circle,
                         ),
-                        child: Row(
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: MediaQuery.of(context).size.width * 0.05,
-                              height: MediaQuery.of(context).size.height * 0.02,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300]!,
-                                shape: BoxShape.circle,
-                              ),
+                              width: double.infinity,
+                              height: 12.0,
+                              color: Colors.grey[300],
                             ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height: 12.0,
-                                    color: Colors.grey[300],
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.4,
-                                    height: 12.0,
-                                    color: Colors.grey[300],
-                                  ),
-                                ],
-                              ),
+                            const SizedBox(height: 8.0),
+                            Container(
+                              width:
+                              MediaQuery.of(context).size.width * 0.4,
+                              height: 12.0,
+                              color: Colors.grey[300],
                             ),
                           ],
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                )
+                ),
+              ),
+            ),
+          )
               : notifications.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.notifications,
-                            color: Colors.black,
-                            size: 92,
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "There are no notification records to display",
-                            style: TextStyle(
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.0357,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      controller: _scrollController,
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        final record = notifications[index];
-                        if (record['verb'] != null) {
-                          return buildListItem(context, record, index);
-                        } else {
-                          return Container();
-                        }
-                      },
-                    ),
+              ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.notifications,
+                  color: Colors.black,
+                  size: 92,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "There are no notification records to display",
+                  style: TextStyle(
+                      fontSize:
+                      MediaQuery.of(context).size.width * 0.0357,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )
+              : ListView.builder(
+            controller: _scrollController,
+            // shrinkWrap: true,
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              final record = notifications[index];
+              if (record['verb'] != null) {
+                return buildListItem(context, record, index);
+              } else {
+                return Container();
+              }
+            },
+          ),
         ),
       ),
     );

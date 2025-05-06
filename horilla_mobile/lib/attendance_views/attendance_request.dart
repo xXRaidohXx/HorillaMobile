@@ -50,9 +50,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
   var employeeItems = [''];
   final List<Widget> bottomBarPages = [];
   final TextEditingController _typeAheadCreateShiftController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _typeAheadCreateWorkTypeController =
-      TextEditingController();
+  TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
   final _controller = NotchBottomBarController(index: -1);
@@ -87,7 +87,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
   void initState() {
     super.initState();
     prefetchData();
-    permissionChecks();
     _scrollController.addListener(_scrollListener);
     getAllRequestedAttendances();
     getAllAttendances();
@@ -98,7 +97,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     _simulateLoading();
   }
 
-  /// Simulates a loading process with a 5-second delay.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {});
@@ -112,10 +110,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
     super.dispose();
   }
 
-  /// Listens to scroll events and triggers pagination for fetching data.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getAllRequestedAttendances();
@@ -123,7 +120,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Shows a dialog animation when an attendance is created successfully.
   void showCreateAnimation() {
     String jsonContent = '''
 {
@@ -145,8 +141,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Created Successfully",
@@ -168,7 +163,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     });
   }
 
-  /// Shows a dialog animation when an attendance is validated successfully.
   void showValidateAnimation() {
     String jsonContent = '''
 {
@@ -190,8 +184,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Approved Successfully",
@@ -213,7 +206,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     });
   }
 
-  /// Shows a dialog animation when an attendance is rejected successfully.
   void showRejectAnimation() {
     String jsonContent = '''
 {
@@ -235,8 +227,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Attendance Rejected Successfully",
@@ -258,16 +249,10 @@ class _AttendanceRequest extends State<AttendanceRequest>
     });
   }
 
-  /// Fetches a list of employees from the server.
   Future<void> getEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
-    setState(() {
-      employeeItems.clear();
-      employeeIdMap.clear();
-      allEmployeeList.clear();
-    });
     for (var page = 1;; page++) {
       var uri = Uri.parse(
           '$typedServerUrl/api/employee/employee-selector?page=$page');
@@ -275,36 +260,25 @@ class _AttendanceRequest extends State<AttendanceRequest>
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var employeeResults = data['results'];
-        if (employeeResults.isEmpty) {
-          break;
-        }
         setState(() {
-          for (var employee in employeeResults) {
+          for (var employee in jsonDecode(response.body)['results']) {
             final firstName = employee['employee_first_name'] ?? '';
             final lastName = employee['employee_last_name'] ?? '';
             final fullName = (firstName.isEmpty ? '' : firstName) +
                 (lastName.isEmpty ? '' : ' $lastName');
             String employeeId = "${employee['id']}";
-
             employeeItems.add(fullName);
             employeeIdMap[fullName] = employeeId;
           }
-
-          allEmployeeList.addAll(
-            List<Map<String, dynamic>>.from(employeeResults),
+          allEmployeeList = List<Map<String, dynamic>>.from(
+            jsonDecode(response.body)['results'],
           );
         });
-      } else {
-        throw Exception('Failed to load employee data');
       }
     }
   }
 
-  /// Fetches the shift details for employees.
   Future<void> getShiftDetails() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -326,7 +300,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Fetches the work type details for employees.
   Future<void> getWorkTypeDetails() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -348,7 +321,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Fetches the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.getString("token");
@@ -358,7 +330,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     });
   }
 
-  /// Shows a custom date picker to select a date.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -429,14 +400,14 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             'Employee',
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadController,
@@ -454,8 +425,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             suggestionsCallback: (pattern) {
                               return employeeItems
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -489,21 +460,19 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Attendance Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: attendanceDateController,
@@ -529,19 +498,19 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                   ? 'Please select a Attendance date'
                                   : null,
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Shift",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadCreateShiftController,
@@ -559,8 +528,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             suggestionsCallback: (pattern) {
                               return shiftDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -594,21 +563,19 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Work Type ",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadCreateWorkTypeController,
@@ -626,8 +593,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             suggestionsCallback: (pattern) {
                               return workTypeDetails
                                   .where((item) => item
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -662,14 +629,12 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -682,19 +647,19 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: checkInDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             checkInDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -709,11 +674,11 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             ? 'Please Choose Check-In Date'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -721,7 +686,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,8 +697,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: checkInHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -749,27 +714,27 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                       decoration: InputDecoration(
                                         labelText: '00:00',
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         errorText: _validateCheckIn
                                             ? 'Please Choose a Check-In'
                                             : null,
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               checkInHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               checkInHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -782,7 +747,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -795,19 +760,19 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       readOnly: true,
                                       controller: checkOutDateController,
                                       onTap: () async {
                                         final selectedDate =
-                                            await showCustomDatePicker(
-                                                context, DateTime.now());
+                                        await showCustomDatePicker(
+                                            context, DateTime.now());
                                         if (selectedDate != null) {
                                           DateTime parsedDate =
-                                              DateFormat('yyyy-MM-dd')
-                                                  .parse(selectedDate);
+                                          DateFormat('yyyy-MM-dd')
+                                              .parse(selectedDate);
                                           setState(() {
                                             checkOutDateController.text =
                                                 DateFormat('yyyy-MM-dd')
@@ -822,11 +787,11 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             ? 'Please Choose a Check-Out Date'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -834,7 +799,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -845,8 +810,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: checkoutHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -865,24 +830,24 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             ? 'Please Choose a Check-Out'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                         prefixIcon: IconButton(
                                           icon: const Icon(Icons.access_time),
                                           onPressed: () async {
                                             final TimeOfDay? picked =
-                                                await showTimePicker(
+                                            await showTimePicker(
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             );
                                             if (picked != null) {
                                               checkoutHoursController.text =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                               checkOutHoursSpent =
-                                                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                                             }
                                           },
                                         ),
@@ -895,7 +860,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           Row(
                             children: [
                               Expanded(
@@ -908,8 +873,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: workedHoursController,
                                       keyboardType: TextInputType.datetime,
@@ -928,11 +893,11 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             ? 'Please add Working Hours'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -940,7 +905,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery.of(context).size.width * 0.03),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -951,8 +916,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.01),
+                                        MediaQuery.of(context).size.height *
+                                            0.01),
                                     TextField(
                                       controller: minimumHourController,
                                       keyboardType: TextInputType.datetime,
@@ -971,11 +936,11 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             ? 'Please add Minimum Hours'
                                             : null,
                                         labelStyle:
-                                            TextStyle(color: Colors.grey[350]),
+                                        TextStyle(color: Colors.grey[350]),
                                         border: const OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
                                       ),
                                     ),
                                   ],
@@ -985,14 +950,14 @@ class _AttendanceRequest extends State<AttendanceRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.04),
+                              MediaQuery.of(context).size.height * 0.04),
                         ],
                       ),
                     ),
                   ),
                   actions: <Widget>[
                     SizedBox(
-                      width: double.infinity,
+                      width: double.infinity, // Make button width infinite
                       child: TextButton(
                         onPressed: () async {
                           if (isSaveClick == true) {
@@ -1172,40 +1137,40 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               });
                             } else {
                               String defaultAttendanceDate =
-                                  DateFormat('yyyy-MM-dd')
-                                      .format(DateTime.now());
+                              DateFormat('yyyy-MM-dd')
+                                  .format(DateTime.now());
                               String defaultCheckInDate =
-                                  DateFormat('yyyy-MM-dd')
-                                      .format(DateTime.now());
+                              DateFormat('yyyy-MM-dd')
+                                  .format(DateTime.now());
                               String defaultTime = '00:00';
                               Map<String, dynamic> createdDetails = {
                                 "employee_id": selectedEmployeeId ?? '',
                                 "attendance_date":
-                                    attendanceDateController.text.isNotEmpty
-                                        ? attendanceDateController.text
-                                        : defaultAttendanceDate,
+                                attendanceDateController.text.isNotEmpty
+                                    ? attendanceDateController.text
+                                    : defaultAttendanceDate,
                                 'shift_id': selectedShiftId ?? '',
                                 'work_type_id': selectedWorkTypeId ?? '',
                                 'attendance_clock_in_date':
-                                    checkInDateController.text.isNotEmpty
-                                        ? checkInDateController.text
-                                        : defaultCheckInDate,
+                                checkInDateController.text.isNotEmpty
+                                    ? checkInDateController.text
+                                    : defaultCheckInDate,
                                 'attendance_clock_in':
-                                    checkInHoursSpent.isNotEmpty
-                                        ? checkInHoursSpent
-                                        : defaultTime,
+                                checkInHoursSpent.isNotEmpty
+                                    ? checkInHoursSpent
+                                    : defaultTime,
                                 'attendance_clock_out_date':
-                                    checkOutDateController.text.isNotEmpty
-                                        ? checkOutDateController.text
-                                        : defaultCheckInDate,
+                                checkOutDateController.text.isNotEmpty
+                                    ? checkOutDateController.text
+                                    : defaultCheckInDate,
                                 'attendance_clock_out':
-                                    checkOutHoursSpent.isNotEmpty
-                                        ? checkOutHoursSpent
-                                        : defaultTime,
+                                checkOutHoursSpent.isNotEmpty
+                                    ? checkOutHoursSpent
+                                    : defaultTime,
                                 'attendance_worked_hour':
-                                    workHoursSpent.isNotEmpty
-                                        ? workHoursSpent
-                                        : defaultTime,
+                                workHoursSpent.isNotEmpty
+                                    ? workHoursSpent
+                                    : defaultTime,
                                 'minimum_hour': minimumHoursSpent.isNotEmpty
                                     ? minimumHoursSpent
                                     : defaultTime,
@@ -1227,9 +1192,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -1253,7 +1218,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     );
   }
 
-  /// Fetches all requested attendance records from the server.
   Future<void> getAllRequestedAttendances() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1281,7 +1245,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
           }
 
           List<String> mapStrings =
-              requestsAllRequestedAttendances.map(serializeMap).toList();
+          requestsAllRequestedAttendances.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsAllRequestedAttendances =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -1317,7 +1281,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
           }
 
           List<String> mapStrings =
-              requestsAllRequestedAttendances.map(serializeMap).toList();
+          requestsAllRequestedAttendances.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsAllRequestedAttendances =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -1333,7 +1297,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Creates a new attendance record.
   Future<void> createNewAttendance(Map<String, dynamic> createdDetails) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1354,7 +1317,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
         "attendance_clock_in_date": createdDetails['attendance_clock_in_date'],
         "attendance_clock_in": createdDetails['attendance_clock_in'],
         "attendance_clock_out_date":
-            createdDetails['attendance_clock_out_date'],
+        createdDetails['attendance_clock_out_date'],
         "attendance_clock_out": createdDetails['attendance_clock_out'],
         "attendance_worked_hour": createdDetails['attendance_worked_hour'],
         "minimum_hour": createdDetails['minimum_hour'],
@@ -1407,13 +1370,13 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Performs a permission check for the attendance-related features.
   Future<void> permissionChecks() async {
+
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var uri =
-        Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
+    Uri.parse('$typedServerUrl/api/attendance/permission-check/attendance');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -1424,13 +1387,13 @@ class _AttendanceRequest extends State<AttendanceRequest>
       permissionAttendance = true;
       permissionAttendanceRequest = true;
       permissionHourAccount = true;
-    } else {
+    }
+    else{
       permissionAttendanceRequest = true;
       permissionHourAccount = true;
     }
   }
 
-  /// Prefetches employee data from the server and stores it locally.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1445,35 +1408,32 @@ class _AttendanceRequest extends State<AttendanceRequest>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Fetches all attendance records from the server.
   Future<void> getAllAttendances() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1502,7 +1462,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
           }
 
           List<String> mapStrings =
-              requestsAllAttendances.map(serializeMap).toList();
+          requestsAllAttendances.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsAllAttendances =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -1535,7 +1495,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
           }
 
           List<String> mapStrings =
-              requestsAllAttendances.map(serializeMap).toList();
+          requestsAllAttendances.map(serializeMap).toList();
           Set<String> uniqueMapStrings = mapStrings.toSet();
           requestsAllAttendances =
               uniqueMapStrings.map(deserializeMap).toList();
@@ -1550,7 +1510,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Filters the list of requested attendance records based on the search text.
   List<Map<String, dynamic>> filterRequestedAttendanceRecords(
       String searchText) {
     if (searchText.isEmpty) {
@@ -1565,7 +1524,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Filters all attendance records based on the search text.
   List<Map<String, dynamic>> filterAllAttendanceRecords(String searchText) {
     if (searchText.isEmpty) {
       return requestsAllAttendances;
@@ -1579,7 +1537,6 @@ class _AttendanceRequest extends State<AttendanceRequest>
     }
   }
 
-  /// Rejects a leave request by sending a request to the server to cancel the attendance request.
   Future<void> rejectLeave(record) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1600,12 +1557,12 @@ class _AttendanceRequest extends State<AttendanceRequest>
         getAllRequestedAttendances();
         getAllAttendances();
       });
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Approves an attendance request by sending a request to the server to approve the leave.
   Future<void> approveRequest(record) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -1626,7 +1583,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
         getAllRequestedAttendances();
         getAllAttendances();
       });
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
@@ -1634,9 +1592,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
   @override
   Widget build(BuildContext context) {
     final bool permissionCheck =
-        ModalRoute.of(context)?.settings.arguments != null
-            ? ModalRoute.of(context)!.settings.arguments as bool
-            : false;
+    ModalRoute.of(context)?.settings.arguments != null
+        ? ModalRoute.of(context)!.settings.arguments as bool
+        : false;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -1645,7 +1603,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
         appBar: AppBar(
           backgroundColor: Colors.white,
           leading: IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu), // Menu icon
             onPressed: () {
               _scaffoldKey.currentState?.openDrawer();
             },
@@ -1714,119 +1672,161 @@ class _AttendanceRequest extends State<AttendanceRequest>
         ),
         body: isLoading ? _buildLoadingWidget() : _buildEmployeeDetailsWidget(),
         drawer: Drawer(
-          child: ListView(
-            padding: const EdgeInsets.all(0),
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Image.asset('Assets/horilla-logo.png'),
-                  ),
-                ),
-              ),
-              permissionOverview
-                  ? ListTile(
+          child: FutureBuilder<void>(
+            future: permissionChecks(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                    shimmerListTile(),
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error loading permissions.'));
+              } else {
+                return ListView(
+                  padding: const EdgeInsets.all(0),
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Image.asset(
+                            'Assets/horilla-logo.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                    permissionOverview
+                        ? ListTile(
                       title: const Text('Overview'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_overview');
                       },
                     )
                   : const SizedBox.shrink(),
+
               permissionAttendance
-                  ? ListTile(
+                        ? ListTile(
                       title: const Text('Attendance'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_attendance');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionAttendanceRequest
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionAttendanceRequest
+                        ? ListTile(
                       title: const Text('Attendance Request'),
                       onTap: () {
                         Navigator.pushNamed(context, '/attendance_request');
                       },
                     )
-                  : const SizedBox.shrink(),
-              permissionHourAccount
-                  ? ListTile(
+                        : const SizedBox.shrink(),
+
+                    permissionHourAccount
+                        ? ListTile(
                       title: const Text('Hour Account'),
                       onTap: () {
                         Navigator.pushNamed(context, '/employee_hour_account');
                       },
                     )
-                  : const SizedBox.shrink(),
-            ],
+                        : const SizedBox.shrink(),
+
+                  ],
+                );
+              }
+            },
           ),
         ),
         bottomNavigationBar: (bottomBarPages.length <= maxCount)
             ? AnimatedNotchBottomBar(
-                notchBottomBarController: _controller,
-                color: Colors.red,
-                showLabel: true,
-                notchColor: Colors.red,
-                kBottomRadius: 28.0,
-                kIconSize: 24.0,
-                removeMargins: false,
-                bottomBarWidth: MediaQuery.of(context).size.width * 1,
-                durationInMilliSeconds: 300,
-                bottomBarItems: const [
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.home_filled,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.update_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  BottomBarItem(
-                    inActiveItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    activeItem: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-                onTap: (index) async {
-                  switch (index) {
-                    case 0:
-                      Navigator.pushNamed(context, '/home');
-                      break;
-                    case 1:
-                      Navigator.pushNamed(
-                          context, '/employee_checkin_checkout');
-                      break;
-                    case 2:
-                      Navigator.pushNamed(context, '/employees_form',
-                          arguments: arguments);
-                      break;
-                  }
-                },
-              )
+          /// Provide NotchBottomBarController
+          notchBottomBarController: _controller,
+          color: Colors.red,
+          showLabel: true,
+          notchColor: Colors.red,
+          kBottomRadius: 28.0,
+          kIconSize: 24.0,
+
+          /// restart app if you change removeMargins
+          removeMargins: false,
+          bottomBarWidth: MediaQuery.of(context).size.width * 1,
+          durationInMilliSeconds: 300,
+          bottomBarItems: const [
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.home_filled,
+                color: Colors.white,
+              ),
+              // itemLabel: 'Home',
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.update_outlined,
+                color: Colors.white,
+              ),
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+              activeItem: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+            ),
+          ],
+
+          onTap: (index) async {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/home');
+                break;
+              case 1:
+                Navigator.pushNamed(
+                    context, '/employee_checkin_checkout');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/employees_form',
+                    arguments: arguments);
+                break;
+            }
+          },
+        )
             : null,
       ),
     );
   }
-
   Widget shimmerListTile() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -1936,12 +1936,12 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             }
                             _debounce =
                                 Timer(const Duration(milliseconds: 1000), () {
-                              setState(() {
-                                searchText = employeeSearchValue;
-                                getAllRequestedAttendances();
-                                getAllAttendances();
-                              });
-                            });
+                                  setState(() {
+                                    searchText = employeeSearchValue;
+                                    getAllRequestedAttendances();
+                                    getAllAttendances();
+                                  });
+                                });
                           },
                           decoration: InputDecoration(
                             hintText: 'Search',
@@ -1950,7 +1950,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               borderSide: BorderSide.none,
                             ),
                             hintStyle:
-                                TextStyle(color: Colors.blueGrey.shade300),
+                            TextStyle(color: Colors.blueGrey.shade300),
                             filled: true,
                             fillColor: Colors.grey[100],
                             prefixIcon: Transform.scale(
@@ -1990,60 +1990,60 @@ class _AttendanceRequest extends State<AttendanceRequest>
                 children: [
                   allRequestAttendance == 0
                       ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: ListView(
-                              children: const [
-                                Icon(
-                                  Icons.inventory_outlined,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: ListView(
+                        children: const [
+                          Icon(
+                            Icons.inventory_outlined,
+                            color: Colors.black,
+                            size: 92,
+                          ),
+                          SizedBox(height: 20),
+                          Center(
+                            child: Text(
+                              "There are no attendance records to display",
+                              style: TextStyle(
+                                  fontSize: 16.0,
                                   color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Center(
-                                  child: Text(
-                                    "There are no attendance records to display",
-                                    style: TextStyle(
-                                        fontSize: 16.0,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                        )
+                        ],
+                      ),
+                    ),
+                  )
                       : buildRequestedAttendanceContent(
-                          requestsAllRequestedAttendances,
-                          _scrollController,
-                          searchText),
+                      requestsAllRequestedAttendances,
+                      _scrollController,
+                      searchText),
                   myRequestAttendance == 0
                       ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: ListView(
-                              children: const [
-                                Icon(
-                                  Icons.inventory_outlined,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: ListView(
+                        children: const [
+                          Icon(
+                            Icons.inventory_outlined,
+                            color: Colors.black,
+                            size: 92,
+                          ),
+                          SizedBox(height: 20),
+                          Center(
+                            child: Text(
+                              "There are no attendance records to display",
+                              style: TextStyle(
+                                  fontSize: 16.0,
                                   color: Colors.black,
-                                  size: 92,
-                                ),
-                                SizedBox(height: 20),
-                                Center(
-                                  child: Text(
-                                    "There are no attendance records to display",
-                                    style: TextStyle(
-                                        fontSize: 16.0,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                        )
+                        ],
+                      ),
+                    ),
+                  )
                       : buildMyAllAttendanceContent(
-                          requestsAllAttendances, _scrollController),
+                      requestsAllAttendances, _scrollController),
                 ],
               ),
             ),
@@ -2287,7 +2287,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border:
-                                  Border.all(color: Colors.grey, width: 1.0),
+                              Border.all(color: Colors.grey, width: 1.0),
                             ),
                             child: Stack(
                               children: [
@@ -2475,7 +2475,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     backgroundColor: Colors.white,
                                     title: Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           "Confirmation",
@@ -2493,8 +2493,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     content: SizedBox(
                                       height:
-                                          MediaQuery.of(context).size.height *
-                                              0.1,
+                                      MediaQuery.of(context).size.height *
+                                          0.1,
                                       child: const Center(
                                         child: Text(
                                           "Are you sure you want to Reject this request?",
@@ -2520,13 +2520,13 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                           },
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Colors.red),
+                                            MaterialStateProperty.all<
+                                                Color>(Colors.red),
                                             shape: MaterialStateProperty.all<
                                                 RoundedRectangleBorder>(
                                               RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(8.0),
+                                                BorderRadius.circular(8.0),
                                               ),
                                             ),
                                           ),
@@ -2547,15 +2547,15 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               ),
                               padding: EdgeInsets.symmetric(
                                 horizontal:
-                                    MediaQuery.of(context).size.width * 0.06,
+                                MediaQuery.of(context).size.width * 0.06,
                                 vertical:
-                                    MediaQuery.of(context).size.height * 0.01,
+                                MediaQuery.of(context).size.height * 0.01,
                               ),
                             ),
                             child: const Text(
                               "Reject",
                               style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
+                              TextStyle(fontSize: 18, color: Colors.white),
                             ),
                           ),
                           SizedBox(
@@ -2569,7 +2569,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     backgroundColor: Colors.white,
                                     title: Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           "Confirmation",
@@ -2587,8 +2587,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                     ),
                                     content: SizedBox(
                                       height:
-                                          MediaQuery.of(context).size.height *
-                                              0.1,
+                                      MediaQuery.of(context).size.height *
+                                          0.1,
                                       child: const Center(
                                         child: Text(
                                           "Are you sure you want to Approve this Attendance?",
@@ -2611,13 +2611,13 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                           },
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Colors.green),
+                                            MaterialStateProperty.all<
+                                                Color>(Colors.green),
                                             shape: MaterialStateProperty.all<
                                                 RoundedRectangleBorder>(
                                               RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(8.0),
+                                                BorderRadius.circular(8.0),
                                               ),
                                             ),
                                           ),
@@ -2638,15 +2638,15 @@ class _AttendanceRequest extends State<AttendanceRequest>
                               ),
                               padding: EdgeInsets.symmetric(
                                 horizontal:
-                                    MediaQuery.of(context).size.width * 0.05,
+                                MediaQuery.of(context).size.width * 0.05,
                                 vertical:
-                                    MediaQuery.of(context).size.height * 0.01,
+                                MediaQuery.of(context).size.height * 0.01,
                               ),
                             ),
                             child: const Text(
                               "Approve",
                               style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
+                              TextStyle(fontSize: 18, color: Colors.white),
                             ),
                           ),
                         ],
@@ -2801,7 +2801,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                       backgroundColor: Colors.white,
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                             "Confirmation",
@@ -2819,8 +2819,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                       ),
                                       content: SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
+                                        MediaQuery.of(context).size.height *
+                                            0.1,
                                         child: const Center(
                                           child: Text(
                                             "Are you sure you want to Reject this Attendance?",
@@ -2845,14 +2845,14 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(Colors.red),
+                                              MaterialStateProperty.all<
+                                                  Color>(Colors.red),
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  BorderRadius.circular(
+                                                      8.0),
                                                 ),
                                               ),
                                             ),
@@ -2873,9 +2873,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.09,
+                                  MediaQuery.of(context).size.width * 0.09,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
                               child: const Text(
@@ -2886,7 +2886,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                             ),
                             SizedBox(
                                 width:
-                                    MediaQuery.of(context).size.width * 0.02),
+                                MediaQuery.of(context).size.width * 0.02),
                             ElevatedButton(
                               onPressed: () async {
                                 isSaveClick = true;
@@ -2897,7 +2897,7 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                       backgroundColor: Colors.white,
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
                                             "Confirmation",
@@ -2915,8 +2915,8 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                       ),
                                       content: SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
+                                        MediaQuery.of(context).size.height *
+                                            0.1,
                                         child: const Center(
                                           child: Text(
                                             "Are you sure you want to Approve this Attendance?",
@@ -2942,14 +2942,14 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(Colors.green),
+                                              MaterialStateProperty.all<
+                                                  Color>(Colors.green),
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  BorderRadius.circular(
+                                                      8.0),
                                                 ),
                                               ),
                                             ),
@@ -2970,9 +2970,9 @@ class _AttendanceRequest extends State<AttendanceRequest>
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal:
-                                      MediaQuery.of(context).size.width * 0.09,
+                                  MediaQuery.of(context).size.width * 0.09,
                                   vertical:
-                                      MediaQuery.of(context).size.height * 0.01,
+                                  MediaQuery.of(context).size.height * 0.01,
                                 ),
                               ),
                               child: const Text(
@@ -2996,347 +2996,181 @@ class _AttendanceRequest extends State<AttendanceRequest>
 
   Widget buildMyAllAttendance(
       Map<String, dynamic> record, fullName, String profile, baseUrl) {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(""),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.95,
-                height: MediaQuery.of(context).size.height * 0.6,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            width: 40.0,
-                            height: 40.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: Colors.grey, width: 1.0),
-                            ),
-                            child: Stack(
-                              children: [
-                                if (record['employee_profile_url'] != null &&
-                                    record['employee_profile_url'].isNotEmpty)
-                                  Positioned.fill(
-                                    child: ClipOval(
-                                      child: Image.network(
-                                        baseUrl +
-                                            record['employee_profile_url'],
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (BuildContext context,
-                                            Object exception,
-                                            StackTrace? stackTrace) {
-                                          return const Icon(Icons.person,
-                                              color: Colors.grey);
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                if (record['employee_profile_url'] == null ||
-                                    record['employee_profile_url'].isEmpty)
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.grey[400],
-                                      ),
-                                      child: const Icon(Icons.person),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.01),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  fullName ?? '',
-                                  style: const TextStyle(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.bold),
-                                  maxLines: 2,
-                                ),
-                                Text(
-                                  record['badge_id'] != null
-                                      ? '${record['badge_id']}'
-                                      : '',
-                                  style: const TextStyle(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                              ),
-                              SizedBox(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.008),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.005),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Date',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['attendance_date'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Check-In',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['attendance_clock_in'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Check-Out',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['attendance_clock_out'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Shift',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['shift_name'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Minimum Hour',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['minimum_hour'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Check-In Date',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text(
-                              '${record['attendance_clock_in_date'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Check-Out Date',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text(
-                              '${record['attendance_clock_out_date'] ?? 'None'}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'At Work',
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          Text('${record['attendance_worked_hour'] ?? 'None'}'),
-                        ],
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.01),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(8.0),
       child: Container(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[50]!),
-            borderRadius: BorderRadius.circular(8.0),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade400.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.white, width: 0.0),
-              borderRadius: BorderRadius.circular(10.0),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[50]!),
+          borderRadius: BorderRadius.circular(8.0),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade400.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
             ),
-            color: Colors.white,
-            elevation: 0.1,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 40.0,
-                        height: 40.0,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey, width: 1.0),
-                        ),
-                        child: Stack(
-                          children: [
-                            if (record['employee_profile_url'] != null &&
-                                record['employee_profile_url'].isNotEmpty)
-                              Positioned.fill(
-                                child: ClipOval(
-                                  child: Image.network(
-                                    baseUrl + record['employee_profile_url'],
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (BuildContext context,
-                                        Object exception,
-                                        StackTrace? stackTrace) {
-                                      return const Icon(Icons.person,
-                                          color: Colors.grey);
-                                    },
-                                  ),
+          ],
+        ),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.white, width: 0.0),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          color: Colors.white,
+          elevation: 0.1,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 40.0,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey, width: 1.0),
+                      ),
+                      child: Stack(
+                        children: [
+                          if (record['employee_profile_url'] != null &&
+                              record['employee_profile_url'].isNotEmpty)
+                            Positioned.fill(
+                              child: ClipOval(
+                                child: Image.network(
+                                  baseUrl + record['employee_profile_url'],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (BuildContext context,
+                                      Object exception,
+                                      StackTrace? stackTrace) {
+                                    return const Icon(Icons.person,
+                                        color: Colors.grey); // Fallback icon
+                                  },
                                 ),
                               ),
-                            if (record['employee_profile_url'] == null ||
-                                record['employee_profile_url'].isEmpty)
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey[400],
-                                  ),
-                                  child: const Icon(Icons.person),
+                            ),
+                          if (record['employee_profile_url'] == null ||
+                              record['employee_profile_url'].isEmpty)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey[400],
                                 ),
+                                child: const Icon(Icons.person),
                               ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.01),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              fullName ?? '',
-                              style: const TextStyle(
-                                  fontSize: 16.0, fontWeight: FontWeight.bold),
-                              maxLines: 2,
                             ),
-                            Text(
-                              record['badge_id'] != null
-                                  ? '${record['badge_id']}'
-                                  : '',
-                              style: const TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.normal),
-                            ),
-                          ],
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fullName ?? '',
+                            style: const TextStyle(
+                                fontSize: 16.0, fontWeight: FontWeight.bold),
+                            maxLines: 2,
+                          ),
+                          Text(
+                            record['badge_id'] != null
+                                ? '${record['badge_id']}'
+                                : '',
+                            style: const TextStyle(
+                                fontSize: 12.0, fontWeight: FontWeight.normal),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Date',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                    Text('${record['attendance_date'] ?? 'None'}'),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Check-In',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                    Text('${record['attendance_clock_in'] ?? 'None'}'),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Shift',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                    Text('${record['shift_name'] ?? 'None'}'),
+                  ],
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/my_attendance_view',
+                            arguments: {
+                              'id': record['id'],
+                              'employee_name': record['employee_first_name'] +
+                                  ' ' +
+                                  record['employee_last_name'],
+                              'badge_id': record['badge_id'],
+                              'shift_name': record['shift_name'],
+                              'attendance_date': record['attendance_date'],
+                              'attendance_clock_in_date':
+                              record['attendance_clock_in_date'],
+                              'attendance_clock_in':
+                              record['attendance_clock_in'],
+                              'attendance_clock_out_date':
+                              record['attendance_clock_out_date'],
+                              'attendance_clock_out':
+                              record['attendance_clock_out'],
+                              'attendance_worked_hour':
+                              record['attendance_worked_hour'],
+                              'minimum_hour': record['minimum_hour'],
+                              'employee_profile':
+                              record['employee_profile_url'],
+                              'permission_check': permissionCheck,
+                            });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade50,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
+                        padding: EdgeInsets.symmetric(
+                            horizontal:
+                            MediaQuery.of(context).size.width * 0.04,
+                            vertical:
+                            MediaQuery.of(context).size.height * 0.01),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.005),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Date',
-                        style: TextStyle(color: Colors.grey.shade700),
+                      child: const Text(
+                        "View Request",
+                        style: TextStyle(fontSize: 18, color: Colors.red),
                       ),
-                      Text('${record['attendance_date'] ?? 'None'}'),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Check-In',
-                        style: TextStyle(color: Colors.grey.shade700),
-                      ),
-                      Text('${record['attendance_clock_in'] ?? 'None'}'),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Shift',
-                        style: TextStyle(color: Colors.grey.shade700),
-                      ),
-                      Text('${record['shift_name'] ?? 'None'}'),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

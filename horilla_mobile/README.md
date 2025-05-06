@@ -1,4 +1,4 @@
-# horilla_mobile
+# horilla_project
 
 A new Flutter project.
 

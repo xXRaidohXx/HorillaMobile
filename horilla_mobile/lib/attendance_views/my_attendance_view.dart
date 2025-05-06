@@ -51,7 +51,6 @@ class _MyAttendanceViews extends State<MyAttendanceViews>
     checkOutTimeMyAttendances.text = "";
   }
 
-  /// Fetches the base URL from SharedPreferences and sets it to `baseUrl`.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -66,7 +65,6 @@ class _MyAttendanceViews extends State<MyAttendanceViews>
     super.dispose();
   }
 
-  /// Prefetches employee data from the server and stores it in `arguments`.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -81,35 +79,32 @@ class _MyAttendanceViews extends State<MyAttendanceViews>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Fetches all shift names from the server and updates `requestsShiftNames` and `shiftItems`.
   Future<void> getAllShiftNames() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -381,12 +376,15 @@ class _MyAttendanceViews extends State<MyAttendanceViews>
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
+              /// Provide NotchBottomBarController
               notchBottomBarController: _controller,
               color: Colors.red,
               showLabel: true,
               notchColor: Colors.red,
               kBottomRadius: 28.0,
               kIconSize: 24.0,
+
+              /// restart app if you change removeMargins
               removeMargins: false,
               bottomBarWidth: MediaQuery.of(context).size.width * 1,
               durationInMilliSeconds: 300,
@@ -422,6 +420,7 @@ class _MyAttendanceViews extends State<MyAttendanceViews>
                   ),
                 ),
               ],
+
               onTap: (index) async {
                 switch (index) {
                   case 0:

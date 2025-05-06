@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:connectivity/connectivity.dart';
+// import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -9,7 +9,8 @@ import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../main.dart';
+import '../../checkin_checkout/checkin_checkout_views/geofencing.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -31,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   bool isAlertSet = false;
   bool permissionLeaveOverviewCheck = false;
   bool permissionLeaveTypeCheck = false;
+  bool permissionGeoFencingMapViewCheck = false;
   bool permissionWardCheck = false;
   bool permissionLeaveAssignCheck = false;
   bool permissionLeaveRequestCheck = false;
@@ -58,6 +60,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    permissionGeoFencingMapView();
     fetchNotifications();
     unreadNotificationsCount();
     getConnectivity();
@@ -106,6 +109,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> permissionGeoFencingMapView() async {
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString("token");
+    var typedServerUrl = prefs.getString("typed_url");
+    var uri = Uri.parse('$typedServerUrl/api/geofencing/setup-check/');
+    var response = await http.get(uri, headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
+    if (response.statusCode == 200) {
+      permissionGeoFencingMapViewCheck = true;
+    } else {
+      permissionGeoFencingMapViewCheck = false;
+    }
+  }
+
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -145,15 +164,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getConnectivity() {
-    subscription = Connectivity().onConnectivityChanged.listen(
-      (ConnectivityResult result) async {
-        isDeviceConnected = await InternetConnectionChecker().hasConnection;
-        if (!isDeviceConnected && !isAlertSet) {
-          showSnackBar();
-          setState(() => isAlertSet = true);
-        }
-      },
-    );
+    // subscription = Connectivity().onConnectivityChanged.listen(
+    //   (ConnectivityResult result) async {
+    //     isDeviceConnected = await InternetConnectionChecker().hasConnection;
+    //     if (!isDeviceConnected && !isAlertSet) {
+    //       showSnackBar();
+    //       setState(() => isAlertSet = true);
+    //     }
+    //   },
+    // );
   }
 
   final List<Widget> bottomBarPages = [
@@ -705,6 +724,23 @@ class _HomePageState extends State<HomePage> {
         ),
         automaticallyImplyLeading: false,
         actions: [
+          Visibility(
+            visible: permissionGeoFencingMapViewCheck,
+            child: IconButton(
+              icon: const Icon(
+                Icons.location_on,
+                color: Colors.black,
+              ),
+              onPressed: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
           Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.center,

@@ -23,7 +23,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _controller = NotchBottomBarController(index: -1);
   final TextEditingController _typeAheadEditController =
-      TextEditingController();
+  TextEditingController();
   final List<Widget> bottomBarPages = [];
   Map<String, String> leaveItemsIdMap = {};
   Map<String, dynamic> breakdownMaps = {
@@ -48,7 +48,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
   bool permissionMyLeaveRequestCheck = false;
   bool permissionLeaveAllocationCheck = false;
   bool _isShimmer = true;
-  bool checkFile = false;
+  bool checkfile = false;
   bool dateCheckError = false;
   bool dateBreakDownError = false;
   bool insufficientDaysError = false;
@@ -98,7 +98,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
   String employeeName = '';
   String? _errorMessage;
   String? selectedLeaveType;
-  String? editLeaveType;
+  String? editleaveType;
   String? editEndDateBreakdown;
   String? editStartDateBreakdown;
   String selectedStartDateValue = '';
@@ -125,8 +125,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
   TextEditingController descriptionSelect = TextEditingController();
   TextEditingController endDateSelect = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
-  bool hasPermissionLeaveAssignCheckExecuted = false;
-  bool hasPermissionLeaveOverviewCheckExecuted = false;
 
   @override
   void initState() {
@@ -136,7 +134,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     endDateSelect.text = "Select End Date";
     _tabController = TabController(length: 5, vsync: this);
     startBreakdown.clear();
-    checkPermissions();
     getMyLeaveRequest();
     getRequestedCount();
     _simulateLoading();
@@ -153,21 +150,13 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     prefetchData();
   }
 
-  /// Checks and executes permissions for various leave-related features.
   Future<void> checkPermissions() async {
-    if (!hasPermissionLeaveOverviewCheckExecuted) {
-      await permissionLeaveOverviewChecks();
-      hasPermissionLeaveOverviewCheckExecuted = true;
-    }
+    await permissionLeaveOverviewChecks();
     await permissionLeaveTypeChecks();
     await permissionLeaveRequestChecks();
-    if (!hasPermissionLeaveAssignCheckExecuted) {
-      await permissionLeaveAssignChecks();
-      hasPermissionLeaveAssignCheckExecuted = true;
-    }
+    await permissionLeaveAssignChecks();
   }
 
-  /// Simulates a loading delay and updates the shimmer state.
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 5));
     setState(() {
@@ -175,7 +164,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     });
   }
 
-  /// Checks permission for leave overview.
   Future<void> permissionLeaveOverviewChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -195,7 +183,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Checks permission for leave types.
   Future<void> permissionLeaveTypeChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -215,7 +202,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Checks permission for leave requests.
   Future<void> permissionLeaveRequestChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -235,7 +221,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Checks permission for leave assignments.
   Future<void> permissionLeaveAssignChecks() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -255,13 +240,12 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Prefetches employee data and initializes arguments.
   void prefetchData() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
-    var typedServerUrl = prefs.getString("typed_url");
+    var typedServerurl = prefs.getString("typed_url");
     var employeeId = prefs.getInt("employee_id");
-    var uri = Uri.parse('$typedServerUrl/api/employee/employees/$employeeId');
+    var uri = Uri.parse('$typedServerurl/api/employee/employees/$employeeId');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -270,35 +254,32 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       arguments = {
-        'employee_id': responseData['id'] ?? '',
-        'employee_name': (responseData['employee_first_name'] ?? '') +
+        'employee_id': responseData['id'],
+        'employee_name': responseData['employee_first_name'] +
             ' ' +
-            (responseData['employee_last_name'] ?? ''),
-        'badge_id': responseData['badge_id'] ?? '',
-        'email': responseData['email'] ?? '',
-        'phone': responseData['phone'] ?? '',
-        'date_of_birth': responseData['dob'] ?? '',
-        'gender': responseData['gender'] ?? '',
-        'address': responseData['address'] ?? '',
-        'country': responseData['country'] ?? '',
-        'state': responseData['state'] ?? '',
-        'city': responseData['city'] ?? '',
-        'qualification': responseData['qualification'] ?? '',
-        'experience': responseData['experience'] ?? '',
-        'marital_status': responseData['marital_status'] ?? '',
-        'children': responseData['children'] ?? '',
-        'emergency_contact': responseData['emergency_contact'] ?? '',
-        'emergency_contact_name': responseData['emergency_contact_name'] ?? '',
-        'employee_work_info_id': responseData['employee_work_info_id'] ?? '',
-        'employee_bank_details_id':
-            responseData['employee_bank_details_id'] ?? '',
-        'employee_profile': responseData['employee_profile'] ?? '',
-        'job_position_name': responseData['job_position_name'] ?? ''
+            responseData['employee_last_name'],
+        'badge_id': responseData['badge_id'],
+        'email': responseData['email'],
+        'phone': responseData['phone'],
+        'date_of_birth': responseData['dob'],
+        'gender': responseData['gender'],
+        'address': responseData['address'],
+        'country': responseData['country'],
+        'state': responseData['state'],
+        'city': responseData['city'],
+        'qualification': responseData['qualification'],
+        'experience': responseData['experience'],
+        'marital_status': responseData['marital_status'],
+        'children': responseData['children'],
+        'emergency_contact': responseData['emergency_contact'],
+        'emergency_contact_name': responseData['emergency_contact_name'],
+        'employee_work_info_id': responseData['employee_work_info_id'],
+        'employee_bank_details_id': responseData['employee_bank_details_id'],
+        'employee_profile': responseData['employee_profile']
       };
     }
   }
 
-  /// Disposes controllers and listeners when the widget is removed.
   @override
   void dispose() {
     _fileNameController.dispose();
@@ -307,7 +288,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     super.dispose();
   }
 
-  /// Fetches the base URL from shared preferences.
   Future<void> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     var typedServerUrl = prefs.getString("typed_url");
@@ -316,23 +296,21 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     });
   }
 
-  /// Listens to scroll events and triggers pagination.
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       currentPage++;
       getMyAllLeaveRequest();
     }
   }
 
-  /// Fetches details of the currently logged-in employee.
   Future<void> getCurrentEmployeeDetails() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
-    var typedServerUrl = prefs.getString("typed_url");
+    var typedServerurl = prefs.getString("typed_url");
     var employeeID = prefs.getInt("employee_id");
-    var uri = Uri.parse('$typedServerUrl/api/employee/employees/$employeeID');
+    var uri = Uri.parse('$typedServerurl/api/employee/employees/$employeeID');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -347,7 +325,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Checks the user type and updates the state accordingly.
   Future<void> checkUserType() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -368,21 +345,20 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Sets the file name to the text controller.
   void setFileName() {
     setState(() {
       _fileNameController.text = fileName;
     });
   }
 
-  /// Fetches all leave type names for the current employee.
   Future<void> getAllLeaveTypeName() async {
+    ///Fetch all leave types and show my leave availability
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var employeeID = prefs.getInt("employeeID");
     var uri =
-        Uri.parse('$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
+    Uri.parse('$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -455,14 +431,14 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text(
                             "Leave Type",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           DropdownButtonFormField<int>(
                             style: const TextStyle(
                               fontWeight: FontWeight.normal,
@@ -478,7 +454,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 10.0),
+                              EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                             onChanged: (int? newValue) {
                               setState(() {
@@ -490,12 +466,12 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Start Date",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: startDateSelect,
@@ -519,7 +495,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDate
                                   ? 'Please select a start date'
                                   : null,
@@ -527,17 +503,17 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Start Date Breakdown",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: DropdownSearch<String>(
                               items:
-                                  breakdownMaps.values.toList().cast<String>(),
+                              breakdownMaps.values.toList().cast<String>(),
                               selectedItem: editStartDateBreakdown,
                               onChanged: (newValue) {
                                 if (newValue != null) {
@@ -560,28 +536,25 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   border: const OutlineInputBorder(),
                                   labelText: "Start Date Breakdown",
                                   labelStyle:
-                                      TextStyle(color: Colors.grey[350]),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0),
+                                  TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
                                 ),
                               ),
                               popupProps: PopupProps.menu(
-                                constraints: BoxConstraints(
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height *
-                                            0.23),
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
                                 showSearchBox: false,
                               ),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("End Date",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: endDateSelect,
@@ -604,7 +577,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateEndDate
                                   ? 'Please select an end date'
                                   : null,
@@ -612,17 +585,17 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("End Date Breakdown",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: DropdownSearch<String>(
                               items:
-                                  breakdownMaps.values.toList().cast<String>(),
+                              breakdownMaps.values.toList().cast<String>(),
                               selectedItem: editEndDateBreakdown,
                               onChanged: (newValue) {
                                 setState(() {
@@ -644,28 +617,25 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   border: const OutlineInputBorder(),
                                   labelText: "End Date Breakdown",
                                   labelStyle:
-                                      TextStyle(color: Colors.grey[350]),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0),
+                                  TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
                                 ),
                               ),
                               popupProps: PopupProps.menu(
-                                constraints: BoxConstraints(
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height *
-                                            0.23),
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
                                 showSearchBox: false,
                               ),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Description",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: descriptionSelect,
                             decoration: InputDecoration(
@@ -673,7 +643,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDescription
                                   ? 'Description cannot be empty'
                                   : null,
@@ -686,7 +656,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           IconButton(
                             icon: const Icon(Icons.attach_file),
                             onPressed: () async {
@@ -696,7 +666,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   pickedFile = file;
                                   fileName = file.name;
                                   filePath = file.path;
-                                  checkFile = true;
+                                  checkfile = true;
                                   setFileName();
                                 });
                               }
@@ -709,22 +679,22 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               border: InputBorder.none,
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 5.0),
+                              const EdgeInsets.symmetric(horizontal: 5.0),
                               suffixIcon: _fileNameController.text.isNotEmpty
                                   ? IconButton(
-                                      padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.0168),
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
-                                      onPressed: () {
-                                        setState(() {
-                                          _fileNameController.clear();
-                                        });
-                                      },
-                                    )
+                                padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context)
+                                        .size
+                                        .height *
+                                        0.0168),
+                                icon:
+                                const Icon(Icons.close, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    _fileNameController.clear();
+                                  });
+                                },
+                              )
                                   : null,
                             ),
                             onChanged: (newValue) {
@@ -806,7 +776,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                 'description': descriptionSelect.text,
                               };
                               await createNewLeaveType(createdDetails,
-                                  checkFile, fileName, filePath);
+                                  checkfile, fileName, filePath);
                               setState(() {
                                 isAction = false;
                               });
@@ -822,16 +792,16 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
                           ),
                         ),
-                        child: const Text('Save',
-                            style: TextStyle(color: Colors.white)),
+                        child:
+                        const Text('Save', style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -899,12 +869,12 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Leave Type",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TypeAheadField<String>(
                             textFieldConfiguration: TextFieldConfiguration(
                               controller: _typeAheadEditController,
@@ -912,8 +882,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                 labelText: 'Choose a Leave Type',
                                 labelStyle: TextStyle(color: Colors.grey[350]),
                                 border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
                                 errorText: _validateLeaveType
                                     ? 'Please select a leave type'
                                     : null,
@@ -922,8 +892,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             suggestionsCallback: (pattern) {
                               return leaveItem
                                   .where((leaveType) => leaveType
-                                      .toLowerCase()
-                                      .contains(pattern.toLowerCase()))
+                                  .toLowerCase()
+                                  .contains(pattern.toLowerCase()))
                                   .toList();
                             },
                             itemBuilder: (context, String suggestion) {
@@ -934,7 +904,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             onSuggestionSelected: (String suggestion) {
                               setState(() {
                                 _typeAheadEditController.text = suggestion;
-                                editLeaveType = suggestion;
+                                editleaveType = suggestion;
                                 selectedLeaveId = leaveItemsIdMap[suggestion];
                                 _validateLeaveType = false;
                               });
@@ -957,19 +927,17 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             hideOnError: false,
                             suggestionsBoxDecoration: SuggestionsBoxDecoration(
                               constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height *
-                                          0.23),
+                                  maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Start Date",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: startDateSelect,
@@ -993,7 +961,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDate
                                   ? 'Please select a start date'
                                   : null,
@@ -1001,17 +969,17 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Start Date Breakdown",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: DropdownSearch<String>(
                               items:
-                                  breakdownMaps.values.toList().cast<String>(),
+                              breakdownMaps.values.toList().cast<String>(),
                               selectedItem: editStartDateBreakdown,
                               onChanged: (newValue) {
                                 if (newValue != null) {
@@ -1034,28 +1002,25 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   border: const OutlineInputBorder(),
                                   labelText: "Start Date Breakdown",
                                   labelStyle:
-                                      TextStyle(color: Colors.grey[350]),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0),
+                                  TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
                                 ),
                               ),
                               popupProps: PopupProps.menu(
-                                constraints: BoxConstraints(
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height *
-                                            0.23),
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
                                 showSearchBox: false,
                               ),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("End Date",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             readOnly: true,
                             controller: endDateSelect,
@@ -1078,7 +1043,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateEndDate
                                   ? 'Please select an end date'
                                   : null,
@@ -1086,17 +1051,17 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("End Date Breakdown",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: DropdownSearch<String>(
                               items:
-                                  breakdownMaps.values.toList().cast<String>(),
+                              breakdownMaps.values.toList().cast<String>(),
                               selectedItem: editEndDateBreakdown,
                               onChanged: (newValue) {
                                 setState(() {
@@ -1118,28 +1083,25 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   border: const OutlineInputBorder(),
                                   labelText: "End Date Breakdown",
                                   labelStyle:
-                                      TextStyle(color: Colors.grey[350]),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0),
+                                  TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
                                 ),
                               ),
                               popupProps: PopupProps.menu(
-                                constraints: BoxConstraints(
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height *
-                                            0.23),
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
                                 showSearchBox: false,
                               ),
                             ),
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           const Text("Description",
                               style: TextStyle(color: Colors.black)),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           TextField(
                             controller: descriptionSelect,
                             decoration: InputDecoration(
@@ -1147,7 +1109,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               border: const OutlineInputBorder(),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              const EdgeInsets.symmetric(horizontal: 10.0),
                               errorText: _validateDescription
                                   ? 'Description cannot be empty'
                                   : null,
@@ -1160,7 +1122,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery.of(context).size.height * 0.03),
                           IconButton(
                             icon: const Icon(Icons.attach_file),
                             onPressed: () async {
@@ -1170,7 +1132,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                   pickedFile = file;
                                   fileName = file.name;
                                   filePath = file.path;
-                                  checkFile = true;
+                                  checkfile = true;
                                   setFileName();
                                 });
                               }
@@ -1183,22 +1145,22 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               border: InputBorder.none,
                               labelStyle: TextStyle(color: Colors.grey[350]),
                               contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 5.0),
+                              const EdgeInsets.symmetric(horizontal: 5.0),
                               suffixIcon: _fileNameController.text.isNotEmpty
                                   ? IconButton(
-                                      padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.0168),
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
-                                      onPressed: () {
-                                        setState(() {
-                                          _fileNameController.clear();
-                                        });
-                                      },
-                                    )
+                                padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context)
+                                        .size
+                                        .height *
+                                        0.0168),
+                                icon:
+                                const Icon(Icons.close, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    _fileNameController.clear();
+                                  });
+                                },
+                              )
                                   : null,
                             ),
                             onChanged: (newValue) {
@@ -1299,7 +1261,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                 'description': descriptionSelect.text,
                               };
                               await createNewLeaveType(createdDetails,
-                                  checkFile, fileName, filePath);
+                                  checkfile, fileName, filePath);
                               setState(() {
                                 isAction = false;
                               });
@@ -1315,16 +1277,16 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.red),
+                          MaterialStateProperty.all<Color>(Colors.red),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
                           ),
                         ),
-                        child: const Text('Save',
-                            style: TextStyle(color: Colors.white)),
+                        child:
+                        const Text('Save', style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -1341,7 +1303,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     );
   }
 
-  /// Displays an animation dialog for successful leave creation.
   void showCreateAnimation() {
     String jsonContent = '''
 {
@@ -1363,8 +1324,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Created Successfully",
@@ -1386,7 +1346,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     });
   }
 
-  /// Displays an animation dialog for successful leave deletion.
   void showDeleteAnimation() {
     String jsonContent = '''
 {
@@ -1408,8 +1367,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Deleted Successfully",
@@ -1431,7 +1389,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     });
   }
 
-  /// Displays an animation dialog for successful leave cancellation.
   void showCancelAnimation() {
     String jsonContent = '''
 {
@@ -1453,8 +1410,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Cancelled Successfully",
@@ -1476,7 +1432,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     });
   }
 
-  /// Displays an animation dialog for successful leave update.
   void showUpdateAnimation() {
     String jsonContent = '''
 {
@@ -1498,8 +1453,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(imagePath,
-                        width: 180, height: 180, fit: BoxFit.cover),
+                    Image.asset(imagePath),
                     const SizedBox(height: 16),
                     const Text(
                       "Leave Updated Successfully",
@@ -1530,432 +1484,422 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
       builder: (BuildContext context) {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-          _fileNameController.addListener(() {
-            setState(() {});
-          });
-          return Stack(
-            children: [
-              AlertDialog(
-                backgroundColor: Colors.white,
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Edit Leave",
-                      style: TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                content: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.95,
-                  height: MediaQuery.of(context).size.height * 0.50,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              _fileNameController.addListener(() {
+                setState(() {});
+              });
+              return Stack(
+                children: [
+                  AlertDialog(
+                    backgroundColor: Colors.white,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (_errorMessage != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              _errorMessage ?? '',
-                              style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Leave Type",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        TypeAheadField<String>(
-                          textFieldConfiguration: TextFieldConfiguration(
-                            controller: _typeAheadEditController,
-                            decoration: InputDecoration(
-                              labelText: 'Choose a Leave Type',
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              border: const OutlineInputBorder(),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              errorText: _validateLeaveType
-                                  ? 'Please select a leave type'
-                                  : null,
-                            ),
-                          ),
-                          suggestionsCallback: (pattern) {
-                            return leaveItem
-                                .where((leaveType) => leaveType
-                                    .toLowerCase()
-                                    .contains(pattern.toLowerCase()))
-                                .toList();
-                          },
-                          itemBuilder: (context, String suggestion) {
-                            return ListTile(
-                              title: Text(suggestion),
-                            );
-                          },
-                          onSuggestionSelected: (String suggestion) {
-                            setState(() {
-                              _typeAheadEditController.text = suggestion;
-                              editLeaveType = suggestion;
-                              selectedLeaveId = leaveItemsIdMap[suggestion];
-                              _validateLeaveType = false;
-                            });
-                          },
-                          noItemsFoundBuilder: (context) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'No Leave Types Found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          errorBuilder: (context, error) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Error: $error',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          hideOnEmpty: true,
-                          hideOnError: false,
-                          suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                            constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.23),
-                          ),
+                        const Text(
+                          "Edit Leave",
+                          style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Start Date",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: TextField(
-                            readOnly: true,
-                            controller: startDateInput,
-                            decoration: InputDecoration(
-                              labelText: "Start Date",
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              border: const OutlineInputBorder(),
-                              errorText: _validateDate
-                                  ? 'Please select a start date'
-                                  : null,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              hintText: "Select Date",
-                            ),
-                            onTap: () async {
-                              final selectedDate = await showCustomDatePicker(
-                                  context, DateTime.now());
-                              if (selectedDate != null) {
-                                DateTime parsedDate = DateFormat('yyyy-MM-dd')
-                                    .parse(selectedDate);
-                                setState(() {
-                                  startDate = parsedDate;
-                                  startDateInput.text = DateFormat('yyyy-MM-dd')
-                                      .format(startDate!);
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text(" Start Date Breakdown",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        DropdownSearch<String>(
-                          items: breakdownMaps.values.toList().cast<String>(),
-                          selectedItem:
-                              breakdownMaps[record['start_date_breakdown']],
-                          onChanged: (newValue) {
-                            selectedEndDateValue = breakdownMaps.entries
-                                .firstWhere((entry) => entry.value == newValue)
-                                .key;
-                            editStartDateBreakdown = selectedEndDateValue;
-                          },
-                          popupProps: PopupProps.menu(
-                            constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.23),
-                            showSearchBox: false,
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("End Date",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: TextField(
-                            readOnly: true,
-                            controller: endDateInput,
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              errorText: _validateEndDate
-                                  ? 'Please select an end date'
-                                  : null,
-                              labelText: "End Date",
-                              labelStyle: TextStyle(color: Colors.grey[350]),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              hintText: "Select Date",
-                            ),
-                            onTap: () async {
-                              final selectedDate = await showCustomDatePicker(
-                                  context, DateTime.now());
-                              if (selectedDate != null) {
-                                DateTime parsedDate = DateFormat('yyyy-MM-dd')
-                                    .parse(selectedDate);
-                                setState(() {
-                                  endDate = parsedDate;
-                                  endDateInput.text =
-                                      DateFormat('yyyy-MM-dd').format(endDate!);
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("End Date Breakdown",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        DropdownSearch<String>(
-                          items: breakdownMaps.values.toList().cast<String>(),
-                          selectedItem:
-                              breakdownMaps[record['end_date_breakdown']],
-                          onChanged: (newValue) {
-                            selectedEndDateValue = breakdownMaps.entries
-                                .firstWhere((entry) => entry.value == newValue)
-                                .key;
-                            editEndDateBreakdown = selectedEndDateValue;
-                          },
-                          popupProps: PopupProps.menu(
-                            constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.23),
-                            showSearchBox: false,
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03),
-                        const Text("Description",
-                            style: TextStyle(color: Colors.black)),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: TextField(
-                            controller: leaveDescription,
-                            decoration: InputDecoration(
-                              hintText: "",
-                              border: const OutlineInputBorder(),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              errorText: _validateDescription
-                                  ? 'Description cannot be empty'
-                                  : null,
-                            ),
-                            onChanged: (newValue) {
-                              record['description'] = newValue;
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.02),
-                        if (currentRequests.isNotEmpty &&
-                            currentRequests[0]['attachment'] != null)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Attachment:',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  String pdfPath =
-                                      currentRequests[0]['attachment'];
-                                  if (pdfPath.endsWith('.png') ||
-                                      pdfPath.endsWith('.jpg') ||
-                                      pdfPath.endsWith('.jpeg') ||
-                                      pdfPath.endsWith('.gif')) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ImageViewer(
-                                          imagePath: baseUrl + pdfPath,
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/attachment_view',
-                                      arguments: pdfPath,
-                                    );
-                                  }
-                                },
-                                child: const Text(
-                                  'View Attachment',
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         IconButton(
-                          icon: const Icon(Icons.attach_file),
-                          onPressed: () async {
-                            XFile? file = await uploadFile(context);
-                            if (file != null) {
-                              setState(() {
-                                pickedFile = file;
-                                fileName = file.name;
-                                filePath = file.path;
-                                checkFile = true;
-                                setFileName();
-                              });
-                            }
-                          },
-                        ),
-                        TextField(
-                          controller: _fileNameController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            labelStyle: TextStyle(color: Colors.grey[350]),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 5.0),
-                            suffixIcon: _fileNameController.text.isNotEmpty
-                                ? IconButton(
-                                    padding: EdgeInsets.only(
-                                        bottom:
-                                            MediaQuery.of(context).size.height *
-                                                0.0168),
-                                    icon: const Icon(Icons.close,
-                                        color: Colors.red),
-                                    onPressed: () {
-                                      setState(() {
-                                        _fileNameController.clear();
-                                      });
-                                    },
-                                  )
-                                : null,
-                          ),
-                          onChanged: (newValue) {
-                            setState(() {
-                              fileName = newValue;
-                              _validateAttachment = newValue.isEmpty;
-                            });
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
                           },
                         ),
                       ],
                     ),
-                  ),
-                ),
-                actions: <Widget>[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (isSaveClick == true) {
-                          isSaveClick = false;
-                          if (leaveDescription.text.isEmpty) {
-                            setState(() {
-                              isSaveClick = true;
-                              _validateDescription = true;
-                            });
-                          } else {
-                            setState(() {
-                              _validateAttachment = false;
-                              isAction = true;
-                            });
-                            Map<String, dynamic> updatedDetails = {
-                              'id': record['id'],
-                              'end_date_breakdown': editEndDateBreakdown ??
-                                  record['end_date_breakdown'],
-                              'start_date_breakdown': editStartDateBreakdown ??
-                                  record['end_date_breakdown'],
-                              'status': record['status'],
-                              'leave_type': editLeaveType ??
-                                  record['leave_type_id']['name'],
-                              'leave_type_id': selectedLeaveId ??
-                                  record['leave_type_id']['id'],
-                              'start_date': startDateInput.text,
-                              'end_date': endDateInput.text,
-                              'description': leaveDescription.text,
-                            };
-
-                            await updateRequest(
-                                updatedDetails, checkFile, fileName, filePath);
-                            setState(() {
-                              isAction = false;
-                            });
-
-                            if (_errorMessage == null ||
-                                _errorMessage!.isEmpty) {
-                              Navigator.of(context).pop(true);
-                              showUpdateAnimation();
-                            } else {
-                              Navigator.of(context).pop(true);
-                              _showUpdateDialog(
-                                  context, record, currentRequests);
-                            }
-                          }
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.red),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6.0),
-                          ),
+                    content: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.95,
+                      height: MediaQuery.of(context).size.height * 0.50,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  _errorMessage ?? '',
+                                  style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Leave Type",
+                                style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            TypeAheadField<String>(
+                              textFieldConfiguration: TextFieldConfiguration(
+                                controller: _typeAheadEditController,
+                                decoration: InputDecoration(
+                                  labelText: 'Choose a Leave Type',
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  errorText: _validateLeaveType
+                                      ? 'Please select a leave type'
+                                      : null,
+                                ),
+                              ),
+                              suggestionsCallback: (pattern) {
+                                return leaveItem
+                                    .where((leaveType) => leaveType
+                                    .toLowerCase()
+                                    .contains(pattern.toLowerCase()))
+                                    .toList();
+                              },
+                              itemBuilder: (context, String suggestion) {
+                                return ListTile(
+                                  title: Text(suggestion),
+                                );
+                              },
+                              onSuggestionSelected: (String suggestion) {
+                                setState(() {
+                                  _typeAheadEditController.text = suggestion;
+                                  editleaveType = suggestion;
+                                  selectedLeaveId = leaveItemsIdMap[suggestion];
+                                  _validateLeaveType = false;
+                                });
+                              },
+                              noItemsFoundBuilder: (context) => const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'No Leave Types Found',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              errorBuilder: (context, error) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Error: $error',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              hideOnEmpty: true,
+                              hideOnError: false,
+                              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                constraints: BoxConstraints(
+                                    maxHeight: MediaQuery.of(context).size.height * 0.23), // Limit height
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Start Date",
+                                style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: TextField(
+                                readOnly: true,
+                                controller: startDateInput,
+                                decoration: InputDecoration(
+                                  labelText: "Start Date",
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  border: const OutlineInputBorder(),
+                                  errorText: _validateDate
+                                      ? 'Please select a start date'
+                                      : null,
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  hintText: "Select Date",
+                                ),
+                                onTap: () async {
+                                  final selectedDate = await showCustomDatePicker(
+                                      context, DateTime.now());
+                                  if (selectedDate != null) {
+                                    DateTime parsedDate = DateFormat('yyyy-MM-dd')
+                                        .parse(selectedDate);
+                                    setState(() {
+                                      startDate = parsedDate;
+                                      startDateInput.text = DateFormat('yyyy-MM-dd')
+                                          .format(startDate!);
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text(" Start Date Breakdown",
+                                style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            DropdownSearch<String>(
+                              items: breakdownMaps.values.toList().cast<String>(),
+                              selectedItem:
+                              breakdownMaps[record['start_date_breakdown']],
+                              onChanged: (newValue) {
+                                selectedEndDateValue = breakdownMaps.entries
+                                    .firstWhere((entry) => entry.value == newValue)
+                                    .key;
+                                editStartDateBreakdown = selectedEndDateValue;
+                              },
+                              popupProps: PopupProps.menu(
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
+                                showSearchBox: false,
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("End Date", style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: TextField(
+                                readOnly: true,
+                                controller: endDateInput,
+                                decoration: InputDecoration(
+                                  border: const OutlineInputBorder(),
+                                  errorText: _validateEndDate
+                                      ? 'Please select an end date'
+                                      : null,
+                                  labelText: "End Date",
+                                  labelStyle: TextStyle(color: Colors.grey[350]),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  hintText: "Select Date",
+                                ),
+                                onTap: () async {
+                                  final selectedDate = await showCustomDatePicker(
+                                      context, DateTime.now());
+                                  if (selectedDate != null) {
+                                    DateTime parsedDate = DateFormat('yyyy-MM-dd')
+                                        .parse(selectedDate);
+                                    setState(() {
+                                      endDate = parsedDate;
+                                      endDateInput.text =
+                                          DateFormat('yyyy-MM-dd').format(endDate!);
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("End Date Breakdown",
+                                style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            DropdownSearch<String>(
+                              items: breakdownMaps.values.toList().cast<String>(),
+                              selectedItem:
+                              breakdownMaps[record['end_date_breakdown']],
+                              onChanged: (newValue) {
+                                selectedEndDateValue = breakdownMaps.entries
+                                    .firstWhere((entry) => entry.value == newValue)
+                                    .key;
+                                editEndDateBreakdown = selectedEndDateValue;
+                              },
+                              popupProps: PopupProps.menu(
+                                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.23), // Set your desired height
+                                showSearchBox: false,
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.03),
+                            const Text("Description",
+                                style: TextStyle(color: Colors.black)),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.01),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: TextField(
+                                controller: leaveDescription,
+                                decoration: InputDecoration(
+                                  hintText: "",
+                                  border: const OutlineInputBorder(),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                                  errorText: _validateDescription
+                                      ? 'Description cannot be empty'
+                                      : null,
+                                ),
+                                onChanged: (newValue) {
+                                  record['description'] = newValue;
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.02),
+                            if (currentRequests.isNotEmpty &&
+                                currentRequests[0]['attachment'] != null)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Attachment:',
+                                    style: TextStyle(color: Colors.grey.shade700),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      String pdfPath =
+                                      currentRequests[0]['attachment'];
+                                      if (pdfPath.endsWith('.png') ||
+                                          pdfPath.endsWith('.jpg') ||
+                                          pdfPath.endsWith('.jpeg') ||
+                                          pdfPath.endsWith('.gif')) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ImageViewer(
+                                              imagePath: baseUrl + pdfPath,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        Navigator.pushNamed(
+                                          context,
+                                          '/attachment_view',
+                                          arguments: pdfPath,
+                                        );
+                                      }
+                                    },
+                                    child: const Text(
+                                      'View Attachment',
+                                      style: TextStyle(
+                                        decoration: TextDecoration.underline,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.attach_file),
+                              onPressed: () async {
+                                XFile? file = await uploadFile(context);
+                                if (file != null) {
+                                  setState(() {
+                                    pickedFile = file;
+                                    fileName = file.name;
+                                    filePath = file.path;
+                                    checkfile = true;
+                                    setFileName();
+                                  });
+                                }
+                              },
+                            ),
+                            TextField(
+                              controller: _fileNameController,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                labelStyle: TextStyle(color: Colors.grey[350]),
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 5.0),
+                                suffixIcon: _fileNameController.text.isNotEmpty
+                                    ? IconButton(
+                                  padding: EdgeInsets.only(
+                                      bottom:
+                                      MediaQuery.of(context).size.height *
+                                          0.0168),
+                                  icon: const Icon(Icons.close, color: Colors.red),
+                                  onPressed: () {
+                                    setState(() {
+                                      _fileNameController.clear();
+                                    });
+                                  },
+                                )
+                                    : null,
+                              ),
+                              onChanged: (newValue) {
+                                setState(() {
+                                  fileName = newValue;
+                                  _validateAttachment = newValue.isEmpty;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Text('Save',
-                          style: TextStyle(color: Colors.white)),
                     ),
+                    actions: <Widget>[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (isSaveClick == true) {
+                              isSaveClick = false;
+                              if (leaveDescription.text.isEmpty) {
+                                setState(() {
+                                  isSaveClick = true;
+                                  _validateDescription = true;
+                                });
+                              } else {
+                                setState(() {
+                                  _validateAttachment = false;
+                                  isAction = true;
+                                });
+                                Map<String, dynamic> updatedDetails = {
+                                  'id': record['id'],
+                                  'end_date_breakdown': editEndDateBreakdown ??
+                                      record['end_date_breakdown'],
+                                  'start_date_breakdown': editStartDateBreakdown ??
+                                      record['end_date_breakdown'],
+                                  'status': record['status'],
+                                  'leave_type': editleaveType ??
+                                      record['leave_type_id']['name'],
+                                  'leave_type_id': selectedLeaveId ??
+                                      record['leave_type_id']['id'],
+                                  'start_date': startDateInput.text,
+                                  'end_date': endDateInput.text,
+                                  'description': leaveDescription.text,
+                                };
+
+                                await updateRequest(
+                                    updatedDetails, checkfile, fileName, filePath);
+                                setState(() {
+                                  isAction = false;
+                                });
+
+                                if (_errorMessage == null || _errorMessage!.isEmpty) {
+                                  Navigator.of(context).pop(true);
+                                  showUpdateAnimation();
+                                } else {
+                                  Navigator.of(context).pop(true);
+                                  _showUpdateDialog(context, record, currentRequests);
+                                }
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                            shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                            ),
+                          ),
+                          child:
+                          const Text('Save', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (isAction)
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                 ],
-              ),
-              if (isAction)
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
-            ],
-          );
-        });
+              );
+            });
       },
     );
   }
 
-  /// Uploads a file from the gallery.
   Future<XFile?> uploadFile(BuildContext context) async {
     final picker = ImagePicker();
     final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
+    await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       return pickedFile;
     } else {
@@ -1969,14 +1913,13 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the available leave types for an employee.
   Future<void> getLeaveTypes() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var employeeID = prefs.getInt("employee_id");
-    var uri =
-        Uri.parse('$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
+    var uri = Uri.parse(
+        '$typedServerUrl/api/leave/employee-leave-type/$employeeID/');
     var response = await http.get(uri, headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
@@ -1993,8 +1936,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves all leave requests made by the user.
   Future<void> getMyAllLeaveRequest() async {
+    ///Fetch all my leave request
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
@@ -2061,7 +2004,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the details of a specific leave request.
   Future<void> getCurrentLeaveRequest(String recordId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2079,8 +2021,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the leave requests made by the user.
   Future<void> getUserLeaveRequest() async {
+    ///Fetch all my leave request
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
@@ -2098,7 +2040,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Displays a custom date picker to the user.
   Future<String?> showCustomDatePicker(
       BuildContext context, DateTime initialDate) async {
     final selectedDate = await showDatePicker(
@@ -2123,30 +2064,31 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     return null;
   }
 
-  /// Creates a new leave request .
   Future<void> createNewLeaveType(Map<String, dynamic> createdDetails,
-      checkFile, String fileName, String filePath) async {
+      checkfile, String fileName, String filePath) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
     var employeeId = prefs.getInt("employee_id");
     for (var leaveType in leaveTypes) {
-      if (leaveType['name'] == createdDetails['leave_type']) {}
+      if (leaveType['name'] == createdDetails['leave_type']) {
+      }
     }
     var request = http.MultipartRequest(
         'POST', Uri.parse('$typedServerUrl/api/leave/user-request/'));
     request.fields['employee_id'] = employeeId.toString();
     request.fields['description'] = createdDetails['description'];
-    request.fields['end_date_breakdown'] = createdDetails['end_date_breakdown'];
+    request.fields['end_date_breakdown'] =
+    createdDetails['end_date_breakdown'];
     request.fields['start_date_breakdown'] =
-        createdDetails['start_date_breakdown'];
+    createdDetails['start_date_breakdown'];
     request.fields['start_date'] = createdDetails['start_date'];
     request.fields['end_date'] = createdDetails['end_date'];
     request.fields['leave_type_id'] =
         createdDetails['leave_type_id'].toString();
-    if (checkFile) {
+    if (checkfile) {
       var attachment =
-          await http.MultipartFile.fromPath('attachment', filePath);
+      await http.MultipartFile.fromPath('attachment', filePath);
       request.files.add(attachment);
     }
     request.headers['Authorization'] = 'Bearer $token';
@@ -2206,9 +2148,10 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Updates an existing leave request with new details .
-  Future<void> updateRequest(Map<String, dynamic> updatedDetails, checkFile,
+  Future<void> updateRequest(Map<String, dynamic> updatedDetails, checkfile,
       String fileName, String filePath) async {
+    print('updatedDetailsssssssss');
+    print(updatedDetails);
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
     var typedServerUrl = prefs.getString("typed_url");
@@ -2218,15 +2161,15 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     request.fields['description'] = updatedDetails['description'];
     request.fields['end_date_breakdown'] = updatedDetails['end_date_breakdown'];
     request.fields['start_date_breakdown'] =
-        updatedDetails['start_date_breakdown'];
+    updatedDetails['start_date_breakdown'];
     request.fields['start_date'] = updatedDetails['start_date'];
     request.fields['end_date'] = updatedDetails['end_date'];
     request.fields['leave_type_id'] =
         updatedDetails['leave_type_id']?.toString() ?? '';
 
-    if (checkFile) {
+    if (checkfile) {
       var attachment =
-          await http.MultipartFile.fromPath('attachment', filePath);
+      await http.MultipartFile.fromPath('attachment', filePath);
       request.files.add(attachment);
     }
     request.headers['Authorization'] = 'Bearer $token';
@@ -2264,7 +2207,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the leave request details for a specific employee.
   Future<void> getLeaveDetails() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     employeeId = args['employee_id'].toString();
@@ -2284,7 +2226,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Cancels an existing leave request.
   Future<void> cancelRequest(int cancelId, String description) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2307,7 +2248,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Deletes a leave request.
   Future<void> deleteRequest(int leaveId) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2328,12 +2268,12 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
       getApprovedCount();
       getCancelledCount();
       getRejectedCount();
-    } else {
+    }
+    else {
       isSaveClick = true;
     }
   }
 
-  /// Retrieves the current leave requests available for the user.
   Future<void> getMyLeaveRequest() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2352,7 +2292,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the count of requested leave.
   Future<void> getRequestedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2373,7 +2312,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the count of approved leave.
   Future<void> getApprovedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2394,7 +2332,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the count of cancelled leave requests.
   Future<void> getCancelledCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2415,7 +2352,6 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     }
   }
 
-  /// Retrieves the count of rejected leave requests.
   Future<void> getRejectedCount() async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token");
@@ -2492,10 +2428,10 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                         side: const BorderSide(color: Colors.red),
                       ),
                     ),
-                    child: const Text('CREATE',
-                        style: TextStyle(color: Colors.red)),
+                    child: const Text('CREATE', style: TextStyle(color: Colors.red)),
                   ),
                 ),
+                // ),
               ],
             ),
           ),
@@ -2504,336 +2440,390 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
       body: isLoading
           ? _buildShimmerEffect()
           : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            if (enoughDays)
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                color: Colors.red,
+                child: const Text(
+                  "Employee doesn't have enough leave days.",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    myRequests.isEmpty
+                        ? const Text('No leaves')
+                        : GridView.builder(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: myRequests.length,
+                      itemBuilder: (context, index) {
+                        final record = myRequests[index];
+                        return buildLeaveTile(record, baseUrl);
+                      },
+                      padding: const EdgeInsets.only(top: 10.0),
+                      gridDelegate:
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        crossAxisSpacing: 20.0,
+                        mainAxisSpacing: 20.0,
+                        childAspectRatio: 1.5,
+                        mainAxisExtent:
+                        MediaQuery.of(context).size.width * 0.7,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
               child: Column(
                 children: [
-                  if (enoughDays)
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      color: Colors.red,
-                      child: const Text(
-                        "Employee doesn't have enough leave days.",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          myRequests.isEmpty
-                              ? const Text('No leaves')
-                              : GridView.builder(
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: myRequests.length,
-                                  itemBuilder: (context, index) {
-                                    final record = myRequests[index];
-                                    return buildLeaveTile(record, baseUrl);
-                                  },
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 1,
-                                    crossAxisSpacing: 20.0,
-                                    mainAxisSpacing: 20.0,
-                                    childAspectRatio: 1.5,
-                                    mainAxisExtent:
-                                        MediaQuery.of(context).size.width * 0.7,
-                                  ),
-                                ),
-                        ],
-                      ),
-                    ),
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.red,
+                    indicatorColor: Colors.red,
+                    unselectedLabelColor: Colors.grey,
+                    isScrollable: true,
+                    tabs: [
+                      Tab(text: 'All ($allMyRequestsCount)'),
+                      Tab(text: 'Requested ($requestedCount)'),
+                      Tab(text: 'Approved ($approvedCount)'),
+                      Tab(text: 'Cancelled ($cancelledCount)'),
+                      Tab(text: 'Rejected ($rejectedCount)'),
+                    ],
                   ),
+                  // ),
+                  SizedBox(
+                      height:
+                      MediaQuery.of(context).size.height * 0.02),
                   Expanded(
                     flex: 2,
-                    child: Column(
-                      children: [
-                        TabBar(
-                          controller: _tabController,
-                          labelColor: Colors.red,
-                          indicatorColor: Colors.red,
-                          unselectedLabelColor: Colors.grey,
-                          isScrollable: true,
-                          tabs: [
-                            Tab(text: 'All ($allMyRequestsCount)'),
-                            Tab(text: 'Requested ($requestedCount)'),
-                            Tab(text: 'Approved ($approvedCount)'),
-                            Tab(text: 'Cancelled ($cancelledCount)'),
-                            Tab(text: 'Rejected ($rejectedCount)'),
-                          ],
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.02),
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.3,
-                            child: TabBarView(
-                              controller: _tabController,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          allMyRequestsCount == 0
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
                               children: [
-                                allMyRequestsCount == 0
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              "There are no Leave records to display",
-                                              style: TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : buildTabStatusContent(myAllRequests),
-                                requestedCount == 0
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              "There are no Leave records to display",
-                                              style: TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : buildTabStatusContent(myAllRequests
-                                        .where((record) =>
-                                            record['status'] == 'requested')
-                                        .toList()),
-                                approvedCount == 0
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              "There are no Leave records to display",
-                                              style: TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : buildTabStatusContent(myAllRequests
-                                        .where((record) =>
-                                            record['status'] == 'approved')
-                                        .toList()),
-                                cancelledCount == 0
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              "There are no Leave records to display",
-                                              style: TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : buildTabStatusContent(myAllRequests
-                                        .where((record) =>
-                                            record['status'] == 'cancelled')
-                                        .toList()),
-                                rejectedCount == 0
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_month_outlined,
-                                              color: Colors.black,
-                                              size: 92,
-                                            ),
-                                            SizedBox(height: 20),
-                                            Text(
-                                              "There are no Leave records to display",
-                                              style: TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : buildTabStatusContent(myAllRequests
-                                        .where((record) =>
-                                            record['status'] == 'rejected')
-                                        .toList()),
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "There are no Leave records to display",
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black,
+                                      fontWeight:
+                                      FontWeight.bold),
+                                ),
                               ],
                             ),
-                          ),
-                        ),
-                      ],
+                          )
+                              : buildTabStatusContent(myAllRequests),
+                          requestedCount == 0
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "There are no Leave records to display",
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black,
+                                      fontWeight:
+                                      FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                              : buildTabStatusContent(myAllRequests
+                              .where((record) =>
+                          record['status'] == 'requested')
+                              .toList()),
+                          approvedCount == 0
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "There are no Leave records to display",
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black,
+                                      fontWeight:
+                                      FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                              : buildTabStatusContent(myAllRequests
+                              .where((record) =>
+                          record['status'] == 'approved')
+                              .toList()),
+                          cancelledCount == 0
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "There are no Leave records to display",
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black,
+                                      fontWeight:
+                                      FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                              : buildTabStatusContent(myAllRequests
+                              .where((record) =>
+                          record['status'] == 'cancelled')
+                              .toList()),
+                          rejectedCount == 0
+                              ? const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black,
+                                  size: 92,
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "There are no Leave records to display",
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.black,
+                                      fontWeight:
+                                      FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                              : buildTabStatusContent(myAllRequests
+                              .where((record) =>
+                          record['status'] == 'rejected')
+                              .toList()),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
       drawer: Drawer(
-        child: ListView(
-          padding: const EdgeInsets.all(0),
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(),
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Image.asset('Assets/horilla-logo.png'),
-                ),
-              ),
-            ),
-            permissionLeaveOverviewCheck
-                ? ListTile(
+        child: FutureBuilder<void>(
+          future: checkPermissions(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                  shimmerListTile(),
+                ],
+              );
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('Error loading permissions.'));
+            } else {
+              return ListView(
+                padding: const EdgeInsets.all(0),
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Image.asset(
+                          'Assets/horilla-logo.png',
+                        ),
+                      ),
+                    ),
+                  ),
+                  permissionLeaveOverviewCheck
+                      ? ListTile(
                     title: const Text('Overview'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_overview');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionMyLeaveRequestCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionMyLeaveRequestCheck
+                      ? ListTile(
                     title: const Text('My Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/my_leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveRequestCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveRequestCheck
+                      ? ListTile(
                     title: const Text('Leave Request'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveTypeCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveTypeCheck
+                      ? ListTile(
                     title: const Text('Leave Type'),
                     onTap: () {
                       Navigator.pushNamed(context, '/leave_types');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAllocationCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAllocationCheck
+                      ? ListTile(
                     title: const Text('Leave Allocation Request'),
                     onTap: () {
-                      Navigator.pushNamed(context, '/leave_allocation_request');
+                      Navigator.pushNamed(
+                          context, '/leave_allocation_request');
                     },
                   )
-                : const SizedBox.shrink(),
-            permissionLeaveAssignCheck
-                ? ListTile(
+                      : const SizedBox.shrink(),
+
+                  permissionLeaveAssignCheck
+                      ? ListTile(
                     title: const Text('All Assigned Leave'),
                     onTap: () {
                       Navigator.pushNamed(context, '/all_assigned_leave');
                     },
                   )
-                : const SizedBox.shrink(),
-          ],
+                      : const SizedBox.shrink(),
+
+                ],
+              );
+            }
+          },
         ),
       ),
       bottomNavigationBar: (bottomBarPages.length <= maxCount)
           ? AnimatedNotchBottomBar(
-              notchBottomBarController: _controller,
-              color: Colors.red,
-              showLabel: true,
-              notchColor: Colors.red,
-              kBottomRadius: 28.0,
-              kIconSize: 24.0,
-              removeMargins: false,
-              bottomBarWidth: MediaQuery.of(context).size.width * 1,
-              durationInMilliSeconds: 300,
-              bottomBarItems: const [
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.update_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                  activeItem: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-              onTap: (index) async {
-                switch (index) {
-                  case 0:
-                    Navigator.pushNamed(context, '/home');
-                    break;
-                  case 1:
-                    Navigator.pushNamed(context, '/employee_checkin_checkout');
-                    break;
-                  case 2:
-                    Navigator.pushNamed(context, '/employees_form',
-                        arguments: arguments);
-                    break;
-                }
-              },
-            )
+        /// Provide NotchBottomBarController
+        notchBottomBarController: _controller,
+        color: Colors.red,
+        showLabel: true,
+        notchColor: Colors.red,
+        kBottomRadius: 28.0,
+        kIconSize: 24.0,
+
+        /// restart app if you change removeMargins
+        removeMargins: false,
+        bottomBarWidth: MediaQuery.of(context).size.width * 1,
+        durationInMilliSeconds: 300,
+        bottomBarItems: const [
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.home_filled,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.update_outlined,
+              color: Colors.white,
+            ),
+          ),
+          BottomBarItem(
+            inActiveItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            activeItem: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
+        ],
+
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/employee_checkin_checkout');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/employees_form',
+                  arguments: arguments);
+              break;
+          }
+        },
+      )
           : null,
     );
   }
@@ -2892,7 +2882,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                 boxShadow: [
                                   BoxShadow(
                                     color:
-                                        Colors.grey.shade400.withOpacity(0.3),
+                                    Colors.grey.shade400.withOpacity(0.3),
                                     spreadRadius: 2,
                                     blurRadius: 5,
                                     offset: const Offset(0, 3),
@@ -3046,15 +3036,16 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
     );
   }
 
+  /// Display my leave based on status
   Widget buildMyLeaveTab(
-    breakdown,
-    BuildContext context,
-    Map<String, dynamic> record,
-    fullName,
-    String profile,
-    stateInfo,
-    String recordId,
-  ) {
+      breakdown,
+      BuildContext context,
+      Map<String, dynamic> record,
+      fullName,
+      String profile,
+      stateInfo,
+      String recordId,
+      ) {
     return GestureDetector(
       onTap: () async {
         await getCurrentLeaveRequest(recordId);
@@ -3086,266 +3077,272 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: currentRequests.isNotEmpty
                           ? [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 40.0,
+                              height: 40.0,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: Colors.grey, width: 1.0),
+                              ),
+                              child: Stack(
                                 children: [
+                                  if (record['leave_type_id']['icon'] !=
+                                      null &&
+                                      record['leave_type_id']['icon']
+                                          .isNotEmpty)
+                                    Positioned.fill(
+                                      child: ClipOval(
+                                        child: Image.network(
+                                          baseUrl +
+                                              record['leave_type_id']
+                                              ['icon'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (BuildContext
+                                          context,
+                                              Object exception,
+                                              StackTrace? stackTrace) {
+                                            return const Icon(
+                                                Icons
+                                                    .calendar_month_outlined,
+                                                color: Colors.grey);
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  if (record['leave_type_id']['icon'] ==
+                                      null ||
+                                      record['leave_type_id']['icon']
+                                          .isEmpty)
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.grey[400],
+                                        ),
+                                        child: const Icon(Icons
+                                            .calendar_month_outlined),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width *
+                                    0.01),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    currentRequests[0]['leave_type_id']
+                                    ['name'] ??
+                                        '',
+                                    style: const TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                    maxLines: 2,
+                                  ),
                                   Container(
-                                    width: 40.0,
-                                    height: 40.0,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5.0, vertical: 2.0),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: Colors.grey, width: 1.0),
+                                      borderRadius:
+                                      BorderRadius.circular(10.0),
+                                      color: _getStateInfo(
+                                          currentRequests[0]
+                                          ['status'])
+                                          .color
+                                          .withOpacity(0.1),
                                     ),
-                                    child: Stack(
-                                      children: [
-                                        if (record['leave_type_id']['icon'] !=
-                                                null &&
-                                            record['leave_type_id']['icon']
-                                                .isNotEmpty)
-                                          Positioned.fill(
-                                            child: ClipOval(
-                                              child: Image.network(
-                                                baseUrl +
-                                                    record['leave_type_id']
-                                                        ['icon'],
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (BuildContext
-                                                        context,
-                                                    Object exception,
-                                                    StackTrace? stackTrace) {
-                                                  return const Icon(
-                                                      Icons
-                                                          .calendar_month_outlined,
-                                                      color: Colors.grey);
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        if (record['leave_type_id']['icon'] ==
-                                                null ||
-                                            record['leave_type_id']['icon']
-                                                .isEmpty)
-                                          Positioned.fill(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.grey[400],
-                                              ),
-                                              child: const Icon(Icons
-                                                  .calendar_month_outlined),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.01),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          currentRequests[0]['leave_type_id']
-                                                  ['name'] ??
-                                              '',
-                                          style: const TextStyle(
-                                            fontSize: 18.0,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                          maxLines: 2,
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 5.0, vertical: 2.0),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            color: _getStateInfo(
-                                                    currentRequests[0]
-                                                        ['status'])
-                                                .color
-                                                .withOpacity(0.1),
-                                          ),
-                                          child: Text(
-                                            _getStateInfo(currentRequests[0]
-                                                    ['status'])
-                                                .displayString,
-                                            style: TextStyle(
-                                              color: _getStateInfo(
-                                                      currentRequests[0]
-                                                          ['status'])
-                                                  .color,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.008),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.05),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Start Date',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  Text('${currentRequests[0]['start_date']}'),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Start Date Breakdown',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  Text(
-                                      '${breakdownMaps[currentRequests[0]['start_date_breakdown']]}'),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'End Date',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  Text('${currentRequests[0]['end_date']}'),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'End Date Breakdown',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  Text(
-                                      '${breakdownMaps[currentRequests[0]['end_date_breakdown']]}'),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Requested Days',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  Text(
-                                      '${currentRequests[0]['requested_days']}'),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Description',
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                width: double.infinity,
-                                height: 100,
-                                padding: const EdgeInsets.all(8.0),
-                                child: SingleChildScrollView(
-                                  child: Text(
-                                    '${currentRequests[0]['description']}',
-                                    style: const TextStyle(color: Colors.black),
-                                  ),
-                                ),
-                              ),
-                              if (currentRequests.isNotEmpty &&
-                                  currentRequests[0]['attachment'] != null)
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Attachment',
+                                    child: Text(
+                                      _getStateInfo(currentRequests[0]
+                                      ['status'])
+                                          .displayString,
                                       style: TextStyle(
-                                          color: Colors.grey.shade700),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        String pdfPath =
-                                            currentRequests[0]['attachment'];
-                                        if (pdfPath.endsWith('.png') ||
-                                            pdfPath.endsWith('.jpg') ||
-                                            pdfPath.endsWith('.jpeg') ||
-                                            pdfPath.endsWith('.gif')) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ImageViewer(
-                                                  imagePath: baseUrl + pdfPath),
-                                            ),
-                                          );
-                                        } else {
-                                          Navigator.pushNamed(
-                                            context,
-                                            '/attachment_view',
-                                            arguments: pdfPath,
-                                          );
-                                        }
-                                      },
-                                      child: const Text(
-                                        'View Attachment',
-                                        style: TextStyle(
-                                          decoration: TextDecoration.underline,
-                                          color: Colors.blue,
-                                        ),
+                                        color: _getStateInfo(
+                                            currentRequests[0]
+                                            ['status'])
+                                            .color,
+                                        fontWeight: FontWeight.w900,
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius:
+                                    BorderRadius.circular(4.0),
+                                  ),
                                 ),
-                            ]
+                                SizedBox(
+                                    width: MediaQuery.of(context)
+                                        .size
+                                        .width *
+                                        0.008),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius:
+                                    BorderRadius.circular(4.0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height *
+                                0.05),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Start Date',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Text('${currentRequests[0]['start_date']}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Start Date Breakdown',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Text(
+                                '${breakdownMaps[currentRequests[0]['start_date_breakdown']]}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'End Date',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Text('${currentRequests[0]['end_date']}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'End Date Breakdown',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Text(
+                                '${breakdownMaps[currentRequests[0]['end_date_breakdown']]}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Requested Days',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Text(
+                                '${currentRequests[0]['requested_days']}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Description',
+                              style:
+                              TextStyle(color: Colors.grey.shade700),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border:
+                            Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(4.0),
+                            color: Colors.transparent,
+                          ),
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Text(
+                              '${currentRequests[0]['description']}',
+                              style: const TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                        if (currentRequests.isNotEmpty &&
+                            currentRequests[0]['attachment'] != null)
+                          Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Attachment',
+                                style: TextStyle(
+                                    color: Colors.grey.shade700),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  String pdfPath =
+                                  currentRequests[0]['attachment'];
+                                  if (pdfPath.endsWith('.png') ||
+                                      pdfPath.endsWith('.jpg') ||
+                                      pdfPath.endsWith('.jpeg') ||
+                                      pdfPath.endsWith('.gif')) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ImageViewer(
+                                            imagePath: baseUrl + pdfPath),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/attachment_view',
+                                      arguments: pdfPath,
+                                    );
+                                  }
+                                },
+                                child: const Text(
+                                  'View Attachment',
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ]
                           : [const Text('No current requests available')],
                     ),
                   ),
@@ -3405,9 +3402,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                     errorBuilder: (BuildContext context,
                                         Object exception,
                                         StackTrace? stackTrace) {
-                                      return const Icon(
-                                          Icons.calendar_month_outlined,
-                                          color: Colors.grey);
+                                      return const Icon(Icons.calendar_month_outlined,
+                                          color: Colors.grey); // Fallback icon
                                     },
                                   ),
                                 ),
@@ -3419,8 +3415,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                     shape: BoxShape.circle,
                                     color: Colors.grey[400],
                                   ),
-                                  child:
-                                      const Icon(Icons.calendar_month_outlined),
+                                  child: const Icon(Icons.calendar_month_outlined),
                                 ),
                               ),
                           ],
@@ -3449,7 +3444,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.edit,
@@ -3497,7 +3492,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 0.0),
+                                const EdgeInsets.symmetric(vertical: 0.0),
                                 child: IconButton(
                                   icon: const Icon(
                                     Icons.delete,
@@ -3512,7 +3507,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                         return AlertDialog(
                                           title: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                             children: [
                                               const Text(
                                                 "Confirmation",
@@ -3532,8 +3527,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                           ),
                                           content: SizedBox(
                                             height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                                .size
+                                                .height *
                                                 0.1,
                                             child: const Center(
                                               child: Text(
@@ -3554,8 +3549,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                                   if (isSaveClick == true) {
                                                     isSaveClick = false;
                                                     var leaveId = record['id'];
-                                                    await deleteRequest(
-                                                        leaveId);
+                                                    await deleteRequest(leaveId);
+                                                    // Navigator.pop(context);
                                                     Navigator.of(context)
                                                         .pop(true);
                                                     showDeleteAnimation();
@@ -3563,15 +3558,15 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                                 },
                                                 style: ButtonStyle(
                                                   backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(Colors.red),
+                                                  MaterialStateProperty.all<
+                                                      Color>(Colors.red),
                                                   shape:
-                                                      MaterialStateProperty.all<
-                                                          RoundedRectangleBorder>(
+                                                  MaterialStateProperty.all<
+                                                      RoundedRectangleBorder>(
                                                     RoundedRectangleBorder(
                                                       borderRadius:
-                                                          BorderRadius.circular(
-                                                              8.0),
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                     ),
                                                   ),
                                                 ),
@@ -3653,7 +3648,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           child: ElevatedButton(
                             onPressed: () {
                               if (DateTime.parse(record['start_date'])
-                                      .isAfter(DateTime.now()) ||
+                                  .isAfter(DateTime.now()) ||
                                   DateTime.parse(record['start_date'])
                                       .isAtSameMomentAs(DateTime.now())) {
                                 showDialog(
@@ -3663,7 +3658,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                       backgroundColor: Colors.white,
                                       title: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(" Cancel Request "),
                                           IconButton(
@@ -3677,11 +3672,11 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                       ),
                                       content: SizedBox(
                                         width:
-                                            MediaQuery.of(context).size.width *
-                                                0.8,
+                                        MediaQuery.of(context).size.width *
+                                            0.8,
                                         height:
-                                            MediaQuery.of(context).size.height *
-                                                0.2,
+                                        MediaQuery.of(context).size.height *
+                                            0.2,
                                         child: Column(
                                           children: [
                                             const Text(
@@ -3690,8 +3685,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                             ),
                                             SizedBox(
                                                 width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
+                                                    .size
+                                                    .width *
                                                     0.01),
                                             TextField(
                                               controller: descriptionLeaveType,
@@ -3699,8 +3694,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                                 hintText: "",
                                                 border: OutlineInputBorder(),
                                                 contentPadding:
-                                                    EdgeInsets.symmetric(
-                                                        horizontal: 10.0),
+                                                EdgeInsets.symmetric(
+                                                    horizontal: 10.0),
                                               ),
                                             ),
                                           ],
@@ -3711,7 +3706,8 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                           onPressed: () async {
                                             var cancelId = record['id'];
                                             var description =
-                                                descriptionLeaveType.text;
+                                                descriptionLeaveType
+                                                    .text; // Get description
                                             await cancelRequest(
                                                 cancelId, description);
                                             Navigator.of(context).pop(true);
@@ -3721,7 +3717,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                             backgroundColor: Colors.red,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(8.0),
+                                              BorderRadius.circular(8.0),
                                             ),
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 50, vertical: 12),
@@ -3741,10 +3737,10 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: record['status'] == 'approved' &&
-                                      (DateTime.parse(record['start_date'])
-                                              .isAfter(DateTime.now()) ||
-                                          DateTime.parse(record['start_date'])
-                                              .isAtSameMomentAs(DateTime.now()))
+                                  (DateTime.parse(record['start_date'])
+                                      .isAfter(DateTime.now()) ||
+                                      DateTime.parse(record['start_date'])
+                                          .isAtSameMomentAs(DateTime.now()))
                                   ? Colors.grey[350]
                                   : Colors.grey[50],
                               shape: RoundedRectangleBorder(
@@ -3756,7 +3752,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                             child: const Text(
                               'Cancel',
                               style:
-                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              TextStyle(fontSize: 18, color: Colors.grey),
                             ),
                           ),
                         ),
@@ -3766,6 +3762,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                 ],
               ),
             ),
+            // ),
           ),
         ),
       ),
@@ -3843,7 +3840,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                     child: Stack(
                                       children: [
                                         if (record['leave_type_id']['icon'] !=
-                                                null &&
+                                            null &&
                                             record['leave_type_id']['icon']
                                                 .isNotEmpty)
                                           Positioned.fill(
@@ -3851,10 +3848,10 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                               child: Image.network(
                                                 baseUrl +
                                                     record['leave_type_id']
-                                                        ['icon'],
+                                                    ['icon'],
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (BuildContext
-                                                        context,
+                                                context,
                                                     Object exception,
                                                     StackTrace? stackTrace) {
                                                   return const Icon(
@@ -3866,7 +3863,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                             ),
                                           ),
                                         if (record['leave_type_id']['icon'] ==
-                                                null ||
+                                            null ||
                                             record['leave_type_id']['icon']
                                                 .isEmpty)
                                           Positioned.fill(
@@ -3887,6 +3884,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                                     width: MediaQuery.of(context).size.width *
                                         0.01),
                                 Expanded(
+                                  // Add Expanded here
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 10.0),
                                     child: Text(
@@ -3906,7 +3904,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.01),
+                              MediaQuery.of(context).size.height * 0.01),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -3936,7 +3934,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.005),
+                              MediaQuery.of(context).size.height * 0.005),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -3968,7 +3966,7 @@ class _MyLeaveRequest extends State<MyLeaveRequest>
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.005),
+                              MediaQuery.of(context).size.height * 0.005),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -4116,28 +4114,28 @@ class ImageViewer extends StatelessWidget {
       body: Center(
         child: isNetworkImage
             ? Image.network(
-                imagePath,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text(
-                    'Error loading image',
-                    style: TextStyle(color: Colors.red),
-                  );
-                },
-              )
+          imagePath,
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              'Error loading image',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+        )
             : fileExists
-                ? Image.file(
-                    File(imagePath),
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text(
-                        'Error loading image',
-                        style: TextStyle(color: Colors.red),
-                      );
-                    },
-                  )
-                : const Text(
-                    'Image not found',
-                    style: TextStyle(color: Colors.red),
-                  ),
+            ? Image.file(
+          File(imagePath),
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              'Error loading image',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+        )
+            : const Text(
+          'Image not found',
+          style: TextStyle(color: Colors.red),
+        ),
       ),
     );
   }
